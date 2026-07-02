@@ -4,3 +4,5 @@
 # Node / OS
 node_modules/
 .DS_Store
+# Subagent-driven-development scratch (local only)
+.superpowers/
