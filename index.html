@@ -1096,6 +1096,24 @@ function renderSettings() {
         </div>
       </div>
 
+      <div class="sec-title">Sync</div>
+      <div class="card">
+        <div class="cb">
+          <div id="sync-status" style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--primary-mid)">${window.Sync ? window.Sync.statusLabel() : 'Local only'}</div>
+          <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:2px">GitHub username</label>
+          <input id="sy-owner" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:15px" value="${window.Sync ? escHtml(window.Sync.cfg().owner || '') : ''}" placeholder="lvannoli">
+          <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:2px">Data repo</label>
+          <input id="sy-repo" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:15px" value="${window.Sync ? escHtml(window.Sync.cfg().repo || 'family-finances-data') : 'family-finances-data'}">
+          <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:2px">Access token</label>
+          <input id="sy-token" type="password" autocomplete="off" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:15px" placeholder="${window.Sync && window.Sync.cfg().token ? '•••••••• (saved)' : 'github_pat_…'}">
+          <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:2px">Passphrase</label>
+          <input id="sy-pass" type="password" autocomplete="off" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:15px" placeholder="${window.Sync && window.Sync.hasPass() ? '•••••••• (saved)' : 'choose a strong passphrase'}">
+          <div style="font-size:11px;color:var(--danger);margin-bottom:12px">If you lose the passphrase your synced data cannot be recovered.</div>
+          <button class="btn btn-p" onclick="window.Sync.saveSettings()">Save &amp; Sync</button>
+          <button class="btn btn-s" onclick="window.Sync.syncNow()">Sync Now</button>
+        </div>
+      </div>
+
       <div class="card" style="margin-top:12px">
         <div class="cb" style="font-size:13px;color:var(--text-2);line-height:1.65">
           <strong style="color:var(--text);font-size:14px">📱 Add to iPhone Home Screen</strong><br>
@@ -1342,7 +1360,12 @@ const App = {
 };
 
 // ── Boot ──────────────────────────────────
+window.DB = DB;
+window.App = App;
+window.S = S;
+window.toast = toast;
 App.go('home');
 </script>
+<script type="module" src="js/app-sync.js"></script>
 </body>
 </html>
