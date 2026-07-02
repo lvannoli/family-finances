@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Finances">
+<meta name="theme-color" content="#1e3a5f">
+<title>Family Finances</title>
+<style>
+:root {
+  --primary: #1e3a5f;
+  --primary-mid: #2563eb;
+  --primary-light: #3b82f6;
+  --savings: #059669;
+  --lisa: #7c3aed;
+  --business: #0891b2;
+  --other: #64748b;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --bg: #f0f4f8;
+  --card: #ffffff;
+  --text: #0f172a;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+  --border: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 25px -5px rgba(0,0,0,.12);
+  --r: 14px;
+  --nav: 58px;
+  --sb: env(safe-area-inset-bottom, 0px);
+  --st: env(safe-area-inset-top, 0px);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overscroll-behavior: none; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  background: var(--bg); color: var(--text);
+  max-width: 430px; margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+#app {
+  min-height: 100dvh;
+  padding-top: var(--st);
+  padding-bottom: calc(var(--nav) + var(--sb) + 4px);
+}
+
+/* ── HEADER ─────────────────────────────── */
+.hd {
+  position: sticky; top: var(--st); z-index: 90;
+  background: var(--primary);
+  padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  color: #fff;
+}
+.hd h1 { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+.hd-actions { display: flex; gap: 8px; }
+.icon-btn {
+  width: 34px; height: 34px;
+  border: none; border-radius: 8px;
+  background: rgba(255,255,255,.15);
+  color: #fff; font-size: 17px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+
+/* ── BOTTOM NAV ──────────────────────────── */
+.bnav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px;
+  background: var(--card); border-top: 1px solid var(--border);
+  display: flex; align-items: flex-start;
+  padding-top: 8px;
+  height: calc(var(--nav) + var(--sb));
+  z-index: 90;
+  box-shadow: 0 -2px 12px rgba(0,0,0,.07);
+}
+.nb {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-family: inherit;
+}
+.nb-icon { font-size: 22px; line-height: 1.1; }
+.nb-lbl { font-size: 10px; color: var(--text-3); font-weight: 500; }
+.nb.active .nb-lbl { color: var(--primary-mid); }
+.nb-add {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: var(--primary-mid); color: #fff;
+  border: none; cursor: pointer;
+  font-size: 26px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: -14px;
+  box-shadow: 0 4px 14px rgba(37,99,235,.4);
+  font-family: inherit;
+}
+
+/* ── VIEW / LAYOUT ──────────────────────── */
+.view { padding: 16px; }
+.sec-title {
+  font-size: 11px; font-weight: 700; letter-spacing: .6px;
+  text-transform: uppercase; color: var(--text-2);
+  margin: 20px 0 10px;
+}
+
+/* ── CARDS ──────────────────────────────── */
+.card {
+  background: var(--card); border-radius: var(--r);
+  box-shadow: var(--shadow); overflow: hidden;
+}
+.card + .card { margin-top: 10px; }
+.cb { padding: 16px; }
+
+/* ── HERO BALANCE ────────────────────────── */
+.hero {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%);
+  color: #fff; padding: 22px 18px 18px;
+  border-radius: var(--r); margin-bottom: 16px;
+}
+.hero-lbl { font-size: 11px; opacity: .7; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.hero-amt { font-size: 38px; font-weight: 800; margin: 4px 0 16px; letter-spacing: -1px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  background: rgba(255,255,255,.15); padding: 5px 11px;
+  border-radius: 20px; font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; gap: 5px;
+}
+.cdot { width: 7px; height: 7px; border-radius: 50%; }
+
+/* ── ACCOUNT CARDS ───────────────────────── */
+.ac {
+  background: var(--card); border-radius: var(--r); box-shadow: var(--shadow);
+  padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  cursor: pointer; border: none; width: 100%; text-align: left;
+  font-family: inherit; transition: transform .12s;
+}
+.ac:active { transform: scale(.98); }
+.ac + .ac { margin-top: 10px; }
+.ac-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.ac-info { flex: 1; min-width: 0; }
+.ac-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+.ac-right { text-align: right; flex-shrink: 0; }
+.ac-bal { font-size: 16px; font-weight: 700; }
+.ac-trend { font-size: 11px; margin-top: 2px; }
+.up { color: var(--success); } .dn { color: var(--danger); }
+.muted { color: var(--text-3); }
+
+/* type colours */
+.t-savings { background: #d1fae5; color: #065f46; }
+.t-lisa     { background: #ede9fe; color: #5b21b6; }
+.t-business { background: #cffafe; color: #164e63; }
+.t-other    { background: #f1f5f9; color: #374151; }
+
+/* ── MODALS ──────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  z-index: 200; display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--card); border-radius: 20px 20px 0 0;
+  width: 100%; padding: 0 20px calc(20px + var(--sb));
+  transform: translateY(100%);
+  transition: transform .28s cubic-bezier(.32,.72,0,1);
+  max-height: 88vh; overflow-y: auto;
+}
+.overlay.open .modal { transform: translateY(0); }
+.mhandle {
+  width: 38px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 14px auto 18px;
+}
+.mtitle { font-size: 18px; font-weight: 700; margin-bottom: 18px; }
+
+/* ── FORMS ───────────────────────────────── */
+.fg { margin-bottom: 14px; }
+.fl { display: block; font-size: 12px; font-weight: 700; color: var(--text-2); margin-bottom: 5px; letter-spacing: .3px; }
+.fi {
+  width: 100%; padding: 12px 14px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-size: 15px; font-family: inherit; color: var(--text);
+  background: #fff; outline: none; transition: border-color .18s;
+}
+.fi:focus { border-color: var(--primary-mid); }
+.fs {
+  width: 100%; padding: 12px 14px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-size: 15px; font-family: inherit; color: var(--text);
+  background: #fff; outline: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+
+/* ── BUTTONS ─────────────────────────────── */
+.btn {
+  display: block; width: 100%; padding: 14px;
+  border-radius: 12px; border: none; cursor: pointer;
+  font-size: 16px; font-weight: 600; font-family: inherit;
+  transition: opacity .18s; text-align: center;
+}
+.btn:active { opacity: .82; }
+.btn + .btn { margin-top: 9px; }
+.btn-p { background: var(--primary-mid); color: #fff; }
+.btn-s { background: var(--bg); color: var(--text); }
+.btn-d { background: var(--danger); color: #fff; }
+
+/* ── UPLOAD ──────────────────────────────── */
+.upload-zone {
+  border: 2px dashed var(--border); border-radius: 12px;
+  padding: 28px 20px; text-align: center; cursor: pointer;
+  background: #f8fafc; transition: border-color .18s, background .18s;
+}
+.upload-zone:hover, .upload-zone.drag { border-color: var(--primary-mid); background: #eff6ff; }
+.uz-icon { font-size: 38px; margin-bottom: 10px; }
+.uz-txt { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.uz-hint { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+input[type=file] { display: none; }
+
+/* ── TRANSACTIONS ────────────────────────── */
+.tx { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.tx:last-child { border-bottom: none; }
+.tx-ic { width: 34px; height: 34px; border-radius: 9px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.tx-d { flex: 1; min-width: 0; }
+.tx-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-date { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.tx-amt { font-size: 14px; font-weight: 700; flex-shrink: 0; }
+
+/* ── CHART ───────────────────────────────── */
+.chart-wrap { position: relative; height: 190px; padding: 0 0 4px; }
+
+/* ── LISA ────────────────────────────────── */
+.lisa-card { background: linear-gradient(135deg,#4c1d95,#7c3aed); color: #fff; }
+.lisa-bar-bg { background: rgba(255,255,255,.2); border-radius: 99px; height: 8px; margin: 10px 0 5px; overflow: hidden; }
+.lisa-bar { height: 100%; background: #fff; border-radius: 99px; transition: width .5s; }
+.lisa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.lisa-stat .v { font-size: 18px; font-weight: 800; }
+.lisa-stat .l { font-size: 11px; opacity: .75; margin-top: 2px; }
+
+/* ── FORECAST TABLE ──────────────────────── */
+.ft { width: 100%; border-collapse: collapse; }
+.ft th { text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-2); padding: 8px 0; border-bottom: 1px solid var(--border); }
+.ft td { padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.ft tr:last-child td { border-bottom: none; }
+.ft .fm { font-weight: 500; }
+.ft .fa { font-weight: 700; }
+
+/* ── MENU ────────────────────────────────── */
+.mi { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.mi:last-child { border-bottom: none; }
+.mi-ic { font-size: 20px; width: 34px; text-align: center; }
+.mi-txt { font-size: 15px; }
+.mi-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+/* ── EMPTY / LOADING ─────────────────────── */
+.empty { text-align: center; padding: 52px 24px; color: var(--text-2); }
+.empty-ic { font-size: 52px; margin-bottom: 12px; }
+.empty-t { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.empty-d { font-size: 14px; line-height: 1.55; }
+.loading { text-align: center; padding: 32px; color: var(--text-2); }
+.spin { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--primary-mid); border-radius: 50%; animation: spin .75s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST ───────────────────────────────── */
+.toast {
+  position: fixed; bottom: calc(var(--nav) + var(--sb) + 14px);
+  left: 50%; transform: translateX(-50%);
+  background: #1e293b; color: #fff;
+  padding: 11px 18px; border-radius: 10px;
+  font-size: 14px; font-weight: 500;
+  z-index: 300; white-space: nowrap;
+  opacity: 0; transition: opacity .2s; pointer-events: none;
+}
+.toast.on { opacity: 1; }
+
+/* ── BACK BTN ────────────────────────────── */
+.back { background: none; border: none; color: #fff; font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 2px 0; }
+
+/* ── ERR BOX ─────────────────────────────── */
+.err-box { background: #fef2f2; border-radius: 12px; padding: 14px; color: #991b1b; font-size: 13px; line-height: 1.6; margin-top: 14px; }
+
+/* ── PREVIEW ITEM ────────────────────────── */
+.pv { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.pv:last-child { border-bottom: none; }
+.pv-row { display: flex; justify-content: space-between; align-items: baseline; }
+.pv-desc { font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
+.pv-amt { font-weight: 700; flex-shrink: 0; }
+.pv-date { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+@media (min-width: 430px) {
+  body { box-shadow: 0 0 60px rgba(0,0,0,.12); }
+}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<nav class="bnav">
+  <button class="nb active" id="n-home" onclick="App.go('home')">
+    <span class="nb-icon">🏠</span>
+    <span class="nb-lbl">Home</span>
+  </button>
+  <button class="nb" id="n-accounts" onclick="App.go('accounts')">
+    <span class="nb-icon">💳</span>
+    <span class="nb-lbl">Accounts</span>
+  </button>
+  <button class="nb-add" onclick="App.openModal('add-account')">+</button>
+  <button class="nb" id="n-forecast" onclick="App.go('forecast')">
+    <span class="nb-icon">📈</span>
+    <span class="nb-lbl">Forecast</span>
+  </button>
+  <button class="nb" id="n-settings" onclick="App.go('settings')">
+    <span class="nb-icon">⚙️</span>
+    <span class="nb-lbl">Settings</span>
+  </button>
+</nav>
+
+<!-- ── ADD ACCOUNT MODAL ───────────────── -->
+<div class="overlay" id="modal-add-account" onclick="if(event.target===this)App.closeModal('add-account')">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtitle">Add Account</div>
+    <div class="fg">
+      <label class="fl">Account Name</label>
+      <input class="fi" id="f-name" type="text" placeholder="e.g. Joint ISA, Leo's LISA…">
+    </div>
+    <div class="fg">
+      <label class="fl">Type</label>
+      <select class="fs" id="f-type">
+        <option value="savings">Personal Savings</option>
+        <option value="lisa">Cash LISA</option>
+        <option value="business">Business Savings</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Bank / Provider</label>
+      <input class="fi" id="f-bank" type="text" placeholder="e.g. Barclays, Monzo, Nationwide…">
+    </div>
+    <div class="fg">
+      <label class="fl">Current Balance (£)</label>
+      <input class="fi" id="f-bal" type="number" placeholder="0.00" step="0.01" min="0">
+    </div>
+    <button class="btn btn-p" onclick="App.saveAccount()">Add Account</button>
+    <button class="btn btn-s" onclick="App.closeModal('add-account')">Cancel</button>
+  </div>
+</div>
+
+<!-- ── GENERAL MODAL (upload / menu) ─────── -->
+<div class="overlay" id="modal-gen" onclick="if(event.target===this)App.closeModal('gen')">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtitle" id="gen-title"></div>
+    <div id="gen-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// family finances app
+
+/* ═══════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════ */
+const DB = {
+  KEY: 'ff_v3',
+  _d: null,
+
+  load() {
+    if (!this._d) {
+      try { this._d = JSON.parse(localStorage.getItem(this.KEY)) || {a:[],t:[]}; }
+      catch(e) { this._d = {a:[],t:[]}; }
+    }
+    return this._d;
+  },
+
+  save() { localStorage.setItem(this.KEY, JSON.stringify(this._d)); },
+
+  accounts() { return this.load().a; },
+  txAll()    { return this.load().t; },
+  txFor(id)  { return this.load().t.filter(t => t.aid === id); },
+
+  addAccount(acc) {
+    acc.id = 'a' + Date.now();
+    this.load().a.push(acc);
+    this.save();
+    return acc;
+  },
+
+  updateAccount(id, patch) {
+    const d = this.load();
+    const i = d.a.findIndex(a => a.id === id);
+    if (i >= 0) { Object.assign(d.a[i], patch); this.save(); }
+  },
+
+  deleteAccount(id) {
+    const d = this.load();
+    d.a = d.a.filter(a => a.id !== id);
+    d.t = d.t.filter(t => t.aid !== id);
+    this.save();
+  },
+
+  addTransactions(aid, txs) {
+    const d = this.load();
+    const existing = new Set(d.t.filter(t => t.aid === aid).map(t => `${t.date}|${t.desc}|${t.amt}`));
+    let added = 0;
+    for (const tx of txs) {
+      const key = `${tx.date}|${tx.desc}|${tx.amt}`;
+      if (!existing.has(key)) {
+        d.t.push({ id: 't' + Date.now() + Math.random().toString(36).slice(2,6), aid, ...tx });
+        existing.add(key);
+        added++;
+      }
+    }
+    // Update balance from latest transaction with balance data
+    const withBal = [...txs].reverse().find(t => t.bal !== undefined);
+    if (withBal) {
+      const acc = d.a.find(a => a.id === aid);
+      if (acc) acc.bal = withBal.bal;
+    }
+    this.save();
+    return added;
+  },
+
+  balance(id) {
+    const d = this.load();
+    const acc = d.a.find(a => a.id === id);
+    if (!acc) return 0;
+    if (acc.bal !== undefined) return acc.bal;
+    const sum = d.t.filter(t => t.aid === id).reduce((s, t) => s + t.amt, 0);
+    return (acc.init || 0) + sum;
+  }
+};
+
+/* ═══════════════════════════════════════════
+   TYPE CONFIG
+═══════════════════════════════════════════ */
+const TY = {
+  savings:  { lbl: 'Personal Savings', icon: '🏦', col: '#059669', cls: 't-savings' },
+  lisa:     { lbl: 'Cash LISA',        icon: '🏠', col: '#7c3aed', cls: 't-lisa'    },
+  business: { lbl: 'Business Savings', icon: '💼', col: '#0891b2', cls: 't-business'},
+  other:    { lbl: 'Other',            icon: '💰', col: '#64748b', cls: 't-other'   }
+};
+const ty = t => TY[t] || TY.other;
+
+/* ═══════════════════════════════════════════
+   FORMATTERS
+═══════════════════════════════════════════ */
+const gbp = function(n) {
+  if (n == null) return '—';
+  return new Intl.NumberFormat('en-GB', {style:'currency', currency:'GBP'}).format(n);
+};
+
+const fmtDate = s => {
+  if (!s) return '';
+  return new Date(s + 'T12:00:00').toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+};
+const fmtShort = s => {
+  if (!s) return '';
+  return new Date(s + 'T12:00:00').toLocaleDateString('en-GB', {month:'short', year:'2-digit'});
+};
+const fmtChg = function(n) { return (n >= 0 ? '+' : '') + gbp(n); };
+
+/* ═══════════════════════════════════════════
+   CSV PARSER
+═══════════════════════════════════════════ */
+const CSV = {
+  parse(raw) {
+    const lines = raw.trim().replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+    // Find header row
+    let hi = 0;
+    for (let i = 0; i < Math.min(lines.length, 8); i++) {
+      const l = lines[i].toLowerCase();
+      if (l.includes('date') || l.includes('amount') || l.includes('balance')) { hi = i; break; }
+    }
+    const hdr = this.split(lines[hi]).map(h => h.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim());
+    const rows = lines.slice(hi + 1).filter(l => l.trim());
+    const fmt = this.detect(hdr);
+    const txs = [];
+    for (const row of rows) {
+      const f = this.split(row);
+      const tx = this.parseTx(f, hdr, fmt);
+      if (tx) txs.push(tx);
+    }
+    return txs;
+  },
+
+  detect(h) {
+    const s = h.join(',');
+    if (s.includes('money out') || s.includes('money in')) return 'monzo';
+    if (s.includes('debit amount') || s.includes('credit amount')) return 'lloyds';
+    if (s.includes('debits') && s.includes('credits')) return 'nationwide';
+    return 'generic';
+  },
+
+  parseTx(f, h, fmt) {
+    const g = (...names) => {
+      for (const n of names) {
+        const i = h.findIndex(x => x.includes(n));
+        if (i >= 0 && f[i] != null) return f[i].replace(/"/g,'').trim();
+      }
+      return '';
+    };
+    let date, desc, amt, bal;
+
+    if (fmt === 'monzo') {
+      date = this.parseDate(g('date'));
+      desc = g('name','description','merchant');
+      const mIn  = this.parseAmt(g('money in'));
+      const mOut = this.parseAmt(g('money out'));
+      amt = (mIn || 0) - (mOut || 0);
+      bal = this.parseAmt(g('balance'));
+    } else if (fmt === 'lloyds') {
+      date = this.parseDate(g('transaction date','date'));
+      desc = g('transaction description','description');
+      const dbt = this.parseAmt(g('debit amount','debit'));
+      const crd = this.parseAmt(g('credit amount','credit'));
+      amt = (crd || 0) - (dbt || 0);
+      bal = this.parseAmt(g('balance'));
+    } else if (fmt === 'nationwide') {
+      date = this.parseDate(g('date'));
+      desc = g('transactions','description','transaction');
+      const dbt = this.parseAmt(g('debits'));
+      const crd = this.parseAmt(g('credits'));
+      amt = (crd || 0) - (dbt || 0);
+      bal = this.parseAmt(g('balance'));
+    } else {
+      date = this.parseDate(g('date'));
+      desc = g('description','memo','reference','narrative','name','counter party','details');
+      let a = this.parseAmt(g('amount','value','paid in out'));
+      if (a == null) {
+        const crd = this.parseAmt(g('credit','paid in','in'));
+        const dbt = this.parseAmt(g('debit','paid out','out'));
+        a = (crd || 0) - (dbt || 0);
+      }
+      amt = a;
+      bal = this.parseAmt(g('balance','running balance'));
+    }
+
+    if (!date || amt == null || isNaN(amt)) return null;
+    const tx = { date, desc: desc || 'Transaction', amt: Math.round(amt * 100) / 100 };
+    if (bal != null && !isNaN(bal)) tx.bal = Math.round(bal * 100) / 100;
+    return tx;
+  },
+
+  split(line) {
+    const out = []; let cur = '', q = false;
+    for (const c of line) {
+      if (c === '"') { q = !q; }
+      else if (c === ',' && !q) { out.push(cur); cur = ''; }
+      else cur += c;
+    }
+    out.push(cur);
+    return out;
+  },
+
+  parseDate(s) {
+    if (!s) return null;
+    s = s.replace(/"/g,'').trim();
+    let m;
+    // DD/MM/YYYY or DD-MM-YYYY
+    m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+    if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    // YYYY-MM-DD
+    m = s.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/);
+    if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+    // DD MMM YYYY
+    const MONTHS = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+    m = s.match(/^(\d{1,2})\s+([A-Za-z]{3,})\s+(\d{4})/);
+    if (m) {
+      const mo = MONTHS[m[2].toLowerCase().slice(0,3)];
+      if (mo) return `${m[3]}-${String(mo).padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    }
+    // MMM DD YYYY
+    m = s.match(/^([A-Za-z]{3,})\s+(\d{1,2}),?\s+(\d{4})/);
+    if (m) {
+      const mo = MONTHS[m[1].toLowerCase().slice(0,3)];
+      if (mo) return `${m[3]}-${String(mo).padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+    }
+    return null;
+  },
+
+  parseAmt(s) {
+    if (s == null) return null;
+    const n = parseFloat(String(s).replace(/[£$€,"]/g,'').trim());
+    return isNaN(n) ? null : n;
+  }
+};
+
+/* ═══════════════════════════════════════════
+   PDF PARSER
+═══════════════════════════════════════════ */
+const PDF = {
+  async parse(file) {
+    if (!window.pdfjsLib) await this._loadLib();
+    const buf = await file.arrayBuffer();
+    const doc = await pdfjsLib.getDocument({data: buf}).promise;
+    let text = '';
+    for (let p = 1; p <= doc.numPages; p++) {
+      const page = await doc.getPage(p);
+      const content = await page.getTextContent();
+      // reconstruct lines by y-position
+      const items = content.items.sort((a,b) => b.transform[5] - a.transform[5] || a.transform[4] - b.transform[4]);
+      let cy = null, cl = '', lines = [];
+      for (const it of items) {
+        const y = Math.round(it.transform[5]);
+        if (cy == null) cy = y;
+        if (Math.abs(y - cy) > 3) { if (cl.trim()) lines.push(cl.trim()); cl = it.str; cy = y; }
+        else cl += ' ' + it.str;
+      }
+      if (cl.trim()) lines.push(cl.trim());
+      text += lines.join('\n') + '\n';
+    }
+    return this.extractTxs(text);
+  },
+
+  _loadLib() {
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js';
+      s.onload = () => {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        res();
+      };
+      s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  },
+
+  extractTxs(text) {
+    const lines = text.split('\n');
+    const txs = [];
+    const pats = [
+      /^(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})\s+(.{3,60}?)\s+([-]?\d{1,3}(?:,\d{3})*\.\d{2})\s*([-]?\d{1,3}(?:,\d{3})*\.\d{2})?$/,
+      /^(\d{1,2}\s+[A-Za-z]{3,}\s+\d{4})\s+(.{3,60}?)\s+([-]?\d{1,3}(?:,\d{3})*\.\d{2})$/,
+    ];
+    for (const line of lines) {
+      for (const pat of pats) {
+        const m = line.match(pat);
+        if (!m) continue;
+        const date = CSV.parseDate(m[1]);
+        if (!date) continue;
+        const amt = parseFloat(m[3].replace(',',''));
+        if (isNaN(amt)) continue;
+        const tx = { date, desc: m[2].trim(), amt: Math.round(amt*100)/100 };
+        if (m[4]) { const b = parseFloat(m[4].replace(',','')); if (!isNaN(b)) tx.bal = Math.round(b*100)/100; }
+        txs.push(tx);
+        break;
+      }
+    }
+    return txs;
+  }
+};
+
+/* ═══════════════════════════════════════════
+   FORECAST
+═══════════════════════════════════════════ */
+const FC = {
+  monthly(txs) {
+    const m = {};
+    for (const t of txs) {
+      const k = t.date.slice(0,7);
+      if (!m[k]) m[k] = { net: 0, bal: null, in: 0, out: 0 };
+      m[k].net += t.amt;
+      if (t.amt > 0) m[k].in += t.amt; else m[k].out += Math.abs(t.amt);
+      if (t.bal != null) m[k].bal = t.bal;
+    }
+    return Object.entries(m).sort((a,b) => a[0].localeCompare(b[0]));
+  },
+
+  avgChange(txs, n = 6) {
+    const mo = this.monthly(txs).slice(-n);
+    if (!mo.length) return 0;
+    return mo.reduce((s,[,m]) => s + m.net, 0) / mo.length;
+  },
+
+  project(balance, avgMo, months = 12) {
+    const now = new Date();
+    let bal = balance;
+    return Array.from({length: months}, (_,i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+      bal += avgMo;
+      return {
+        lbl: d.toLocaleDateString('en-GB', {month:'short', year:'numeric'}),
+        key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,
+        bal: Math.round(bal*100)/100,
+        chg: Math.round(avgMo*100)/100
+      };
+    });
+  },
+
+  lisa(txs) {
+    const now = new Date();
+    const tyStart = (now.getMonth() < 3 || (now.getMonth() === 3 && now.getDate() < 6))
+      ? new Date(now.getFullYear()-1, 3, 6)
+      : new Date(now.getFullYear(), 3, 6);
+    const contrib = txs
+      .filter(t => new Date(t.date + 'T12:00:00') >= tyStart && t.amt > 0)
+      .reduce((s,t) => s + t.amt, 0);
+    const bonus = Math.min(contrib, 4000) * 0.25;
+    const remaining = Math.max(0, 4000 - contrib);
+    return {
+      yr: `${tyStart.getFullYear()}/${String(tyStart.getFullYear()+1).slice(2)}`,
+      contrib: Math.round(contrib*100)/100,
+      bonus:   Math.round(bonus*100)/100,
+      remaining: Math.round(remaining*100)/100,
+      pct: Math.min(100, Math.round((contrib/4000)*100))
+    };
+  }
+};
+
+/* ═══════════════════════════════════════════
+   STATE & HELPERS
+═══════════════════════════════════════════ */
+const S = { view: 'home', accId: null, pendingTxs: null, charts: {} };
+
+function toast(msg, ms=2600) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('on');
+  setTimeout(() => el.classList.remove('on'), ms);
+}
+
+function destroyCharts() {
+  Object.values(S.charts).forEach(c => { try { c.destroy(); } catch {} });
+  S.charts = {};
+}
+
+function lineChart(canvasId, labels, datasets, color) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  S.charts[canvasId] = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: function(ctx) { return '  ' + gbp(ctx.parsed.y); } }
+      }},
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 7, font: { size: 10 }, color: '#94a3b8' } },
+        y: {
+          grid: { color: '#f1f5f9' },
+          ticks: { callback: v => v >= 1000 ? '£' + (v/1000).toFixed(1) + 'k' : '£' + v, font: { size: 10 }, color: '#94a3b8' }
+        }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════
+   CHART DATA BUILDERS
+═══════════════════════════════════════════ */
+function buildAccountChartData(accId) {
+  const txs = DB.txFor(accId).sort((a,b) => a.date.localeCompare(b.date));
+  if (!txs.length) return null;
+
+  const monthly = FC.monthly(txs);
+  const curBal = DB.balance(accId);
+  const avgChg = FC.avgChange(txs);
+  const proj = FC.project(curBal, avgChg, 6);
+  const acc = DB.accounts().find(a => a.id === accId);
+
+  // Build historical balance series
+  let histBals = monthly.map(([k,m]) => ({
+    lbl: fmtShort(k + '-01'),
+    bal: m.bal
+  }));
+
+  // If no balance column, reconstruct from initial
+  if (histBals.every(h => h.bal == null)) {
+    let run = acc?.init || 0;
+    histBals = monthly.map(([k,m]) => { run += m.net; return { lbl: fmtShort(k+'-01'), bal: Math.round(run*100)/100 }; });
+  }
+
+  // Take last 8 months
+  histBals = histBals.slice(-8);
+
+  const allLabels = [...histBals.map(h => h.lbl), ...proj.map(p => p.lbl)];
+  const histData  = [...histBals.map(h => h.bal), ...Array(proj.length).fill(null)];
+
+  // Connect forecast to last hist point
+  const forecastData = [...Array(histBals.length - 1).fill(null)];
+  const lastBal = histBals[histBals.length - 1]?.bal ?? curBal;
+  forecastData.push(lastBal);
+  forecastData.push(...proj.map(p => p.bal));
+
+  const col = ty(acc?.type).col;
+  return {
+    labels: allLabels,
+    datasets: [
+      {
+        label: 'Balance',
+        data: histData,
+        borderColor: col, backgroundColor: col + '1a',
+        fill: true, tension: 0.4, pointRadius: 3, spanGaps: false
+      },
+      {
+        label: 'Forecast',
+        data: forecastData,
+        borderColor: col, borderDash: [5,5],
+        backgroundColor: 'transparent',
+        fill: false, tension: 0.4, pointRadius: 3, spanGaps: true
+      }
+    ]
+  };
+}
+
+function buildTotalChartData() {
+  const accounts = DB.accounts();
+  if (!accounts.length) return null;
+  const allTxs = DB.txAll();
+  if (allTxs.length < 2) return null;
+
+  const totalBal = accounts.reduce((s,a) => s + DB.balance(a.id), 0);
+  const avgChg = FC.avgChange(allTxs);
+  const proj = FC.project(totalBal, avgChg, 12);
+
+  // Build monthly total from per-account balances
+  const monthly = FC.monthly(allTxs);
+  const histBals = monthly.slice(-6).map(([k,m]) => ({
+    lbl: fmtShort(k+'-01'), bal: m.bal
+  }));
+
+  const allLabels = [...histBals.map(h => h.lbl), ...proj.map(p => p.lbl)];
+  const histData  = [...histBals.map(h => h.bal), ...Array(proj.length).fill(null)];
+  const forecastData = [...Array(histBals.length - 1).fill(null)];
+  forecastData.push(histBals[histBals.length-1]?.bal ?? totalBal);
+  forecastData.push(...proj.map(p => p.bal));
+
+  return {
+    labels: allLabels,
+    datasets: [
+      { label:'Total', data: histData, borderColor:'#2563eb', backgroundColor:'#2563eb1a', fill:true, tension:0.4, pointRadius:3, spanGaps:false },
+      { label:'Forecast', data: forecastData, borderColor:'#2563eb', borderDash:[5,5], backgroundColor:'transparent', fill:false, tension:0.4, pointRadius:3, spanGaps:true }
+    ]
+  };
+}
+
+/* ═══════════════════════════════════════════
+   RENDERS
+═══════════════════════════════════════════ */
+function renderAccountCard(a) {
+  const bal = DB.balance(a.id);
+  const txs = DB.txFor(a.id);
+  const avg = txs.length > 5 ? FC.avgChange(txs) : null;
+  const t = ty(a.type);
+  const trendHtml = avg != null
+    ? `<div class="ac-trend ${avg >= 0 ? 'up' : 'dn'}">${fmtChg(avg)}/mo</div>`
+    : `<div class="ac-trend muted">Upload statement</div>`;
+  return `
+    <button class="ac" onclick="App.go('account',{id:'${a.id}'})">
+      <div class="ac-icon ${t.cls}">${t.icon}</div>
+      <div class="ac-info">
+        <div class="ac-name">${escHtml(a.name)}</div>
+        <div class="ac-sub">${t.lbl}${a.bank ? ' · ' + escHtml(a.bank) : ''}</div>
+      </div>
+      <div class="ac-right">
+        <div class="ac-bal">${gbp(bal)}</div>
+        ${trendHtml}
+      </div>
+    </button>`;
+}
+
+function renderHome() {
+  const accounts = DB.accounts();
+  const total = accounts.reduce((s,a) => s + DB.balance(a.id), 0);
+  const byType = {};
+  for (const a of accounts) { byType[a.type] = (byType[a.type]||0) + DB.balance(a.id); }
+  const chips = Object.entries(byType).map(([t,v]) => {
+    const tp = ty(t);
+    return `<div class="chip"><div class="cdot" style="background:${tp.col}"></div>${tp.lbl.split(' ').pop()}: ${gbp(v)}</div>`;
+  }).join('');
+
+  const cards = accounts.length
+    ? accounts.map(renderAccountCard).join('')
+    : `<div class="empty"><div class="empty-ic">🏦</div><div class="empty-t">No accounts yet</div><div class="empty-d">Tap the + button to add your first savings account</div></div>`;
+
+  return `
+    <div class="hd">
+      <h1>Family Finances</h1>
+      <div class="hd-actions"><button class="icon-btn" onclick="App.openModal('add-account')">+</button></div>
+    </div>
+    <div class="view">
+      <div class="hero">
+        <div class="hero-lbl">Total Savings</div>
+        <div class="hero-amt">${gbp(total)}</div>
+        ${chips ? `<div class="chips">${chips}</div>` : ''}
+      </div>
+      ${accounts.length ? '<div class="sec-title">Your Accounts</div>' : ''}
+      ${cards}
+    </div>`;
+}
+
+function renderAccounts() {
+  const accounts = DB.accounts();
+  const grouped = {};
+  for (const a of accounts) { if (!grouped[a.type]) grouped[a.type] = []; grouped[a.type].push(a); }
+  let html = `<div class="hd"><h1>Accounts</h1><div class="hd-actions"><button class="icon-btn" onclick="App.openModal('add-account')">+</button></div></div><div class="view">`;
+  if (!accounts.length) {
+    html += `<div class="empty"><div class="empty-ic">💳</div><div class="empty-t">No accounts yet</div><div class="empty-d">Add your savings, LISA, and business accounts to get started</div></div>`;
+  } else {
+    for (const [type, accs] of Object.entries(grouped)) {
+      html += `<div class="sec-title">${ty(type).lbl}</div>` + accs.map(renderAccountCard).join('');
+    }
+  }
+  return html + '</div>';
+}
+
+function renderAccount(id) {
+  const acc = DB.accounts().find(a => a.id === id);
+  if (!acc) return renderHome();
+  const t = ty(acc.type);
+  const bal = DB.balance(id);
+  const txs = DB.txFor(id).sort((a,b) => b.date.localeCompare(a.date));
+  const monthly = FC.monthly(txs);
+  const avg = FC.avgChange(txs);
+  const proj = FC.project(bal, avg, 12);
+  const hasEnoughForForecast = monthly.length >= 2;
+
+  const txHtml = !txs.length
+    ? `<div style="text-align:center;padding:20px 0;color:var(--text-3);font-size:14px">Upload a statement to see transactions</div>`
+    : txs.slice(0,25).map(tx => `
+        <div class="tx">
+          <div class="tx-ic">${tx.amt >= 0 ? '↑' : '↓'}</div>
+          <div class="tx-d">
+            <div class="tx-name">${escHtml(tx.desc)}</div>
+            <div class="tx-date">${fmtDate(tx.date)}</div>
+          </div>
+          <div class="tx-amt ${tx.amt >= 0 ? 'up' : ''}">${fmtChg(tx.amt)}</div>
+        </div>`).join('');
+
+  const forecastRows = proj.map(p => `
+    <tr>
+      <td class="fm">${p.lbl}</td>
+      <td class="fa">${gbp(p.bal)}</td>
+      <td class="${p.chg >= 0 ? 'up' : 'dn'}">${fmtChg(p.chg)}</td>
+    </tr>`).join('');
+
+  let lisaHtml = '';
+  if (acc.type === 'lisa') {
+    const ls = FC.lisa(txs);
+    lisaHtml = `
+      <div class="sec-title">LISA Status</div>
+      <div class="card lisa-card">
+        <div class="cb">
+          <div style="font-size:11px;opacity:.75;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Tax Year ${ls.yr}</div>
+          <div class="lisa-bar-bg"><div class="lisa-bar" style="width:${ls.pct}%"></div></div>
+          <div style="font-size:11px;opacity:.65;text-align:right;margin-top:-2px;margin-bottom:4px">${ls.pct}% of £4,000 allowance</div>
+          <div class="lisa-grid">
+            <div class="lisa-stat"><div class="v">${gbp(ls.contrib)}</div><div class="l">Contributed</div></div>
+            <div class="lisa-stat"><div class="v">${gbp(ls.bonus)}</div><div class="l">Bonus earned (25%)</div></div>
+            <div class="lisa-stat"><div class="v">${gbp(ls.remaining)}</div><div class="l">Remaining allowance</div></div>
+            <div class="lisa-stat"><div class="v">${gbp(Math.round((ls.remaining*0.25)*100)/100)}</div><div class="l">Extra bonus possible</div></div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  return `
+    <div class="hd" style="background:${t.col}">
+      <button class="back" onclick="App.go('home')">‹ Back</button>
+      <div class="hd-actions">
+        <button class="icon-btn" onclick="App.showUpload('${id}')">📂</button>
+        <button class="icon-btn" onclick="App.showAccMenu('${id}')">⋯</button>
+      </div>
+    </div>
+    <div class="view">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+        <div class="ac-icon ${t.cls}" style="width:50px;height:50px;border-radius:14px;font-size:24px">${t.icon}</div>
+        <div>
+          <div style="font-size:22px;font-weight:800;letter-spacing:-.4px">${escHtml(acc.name)}</div>
+          <div style="font-size:13px;color:var(--text-2)">${t.lbl}${acc.bank ? ' · ' + escHtml(acc.bank) : ''}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cb">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--text-2)">Current Balance</div>
+          <div style="font-size:34px;font-weight:800;margin:4px 0;letter-spacing:-1px">${gbp(bal)}</div>
+          ${avg !== 0 ? `<div style="font-size:13px;color:${avg >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtChg(avg)} avg per month</div>` : ''}
+        </div>
+        ${txs.length >= 2 ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="acc-chart"></canvas></div></div>` : ''}
+      </div>
+
+      ${lisaHtml}
+
+      <div class="sec-title">12-Month Forecast</div>
+      <div class="card">
+        <div class="cb">
+          ${!hasEnoughForForecast
+            ? `<div style="color:var(--text-2);font-size:14px">Upload at least 2 months of statements to generate a forecast.</div>`
+            : `<table class="ft"><thead><tr><th>Month</th><th>Balance</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>`}
+        </div>
+      </div>
+
+      <div class="sec-title">Recent Transactions</div>
+      <div class="card">
+        <div class="cb">${txHtml}</div>
+        ${txs.length > 25 ? `<div style="text-align:center;padding:0 0 12px;font-size:12px;color:var(--text-3)">Showing 25 of ${txs.length} transactions</div>` : ''}
+      </div>
+
+      <div style="margin-top:16px">
+        <button class="btn btn-p" onclick="App.showUpload('${id}')">📂  Upload Statement</button>
+      </div>
+    </div>`;
+}
+
+function renderForecast() {
+  const accounts = DB.accounts();
+  const totalBal = accounts.reduce((s,a) => s + DB.balance(a.id), 0);
+  const allTxs = DB.txAll();
+  const avg = FC.avgChange(allTxs);
+  const proj = FC.project(totalBal, avg, 12);
+  const hasForecast = allTxs.length >= 2;
+
+  const projIn12 = proj[11]?.bal ?? totalBal;
+  const forecastRows = proj.map(p => `
+    <tr>
+      <td class="fm">${p.lbl}</td>
+      <td class="fa">${gbp(p.bal)}</td>
+      <td class="${p.chg >= 0 ? 'up' : 'dn'}">${fmtChg(p.chg)}</td>
+    </tr>`).join('');
+
+  const perAcc = accounts.map(a => {
+    const txs = DB.txFor(a.id);
+    const aAvg = FC.avgChange(txs);
+    const aBal = DB.balance(a.id);
+    const aProj12 = FC.project(aBal, aAvg, 12)[11]?.bal ?? aBal;
+    const t = ty(a.type);
+    return `
+      <div class="card" style="margin-bottom:10px">
+        <div class="cb" style="display:flex;align-items:center;gap:10px">
+          <div class="ac-icon ${t.cls}" style="width:40px;height:40px;border-radius:11px;font-size:20px">${t.icon}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:15px">${escHtml(a.name)}</div>
+            <div style="font-size:12px;color:var(--text-2)">${t.lbl}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:800;font-size:16px">${gbp(aProj12)}</div>
+            <div style="font-size:12px;color:${aAvg >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtChg(aAvg)}/mo</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="hd"><h1>Forecast</h1></div>
+    <div class="view">
+      <div class="card">
+        <div class="cb">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--text-2)">Total in 12 Months</div>
+          <div style="font-size:30px;font-weight:800;margin:4px 0;letter-spacing:-1px">${gbp(projIn12)}</div>
+          <div style="font-size:13px;color:${avg >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtChg(avg)} avg per month across all accounts</div>
+        </div>
+        ${hasForecast ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="tot-chart"></canvas></div></div>` : ''}
+      </div>
+
+      <div class="sec-title">Month by Month</div>
+      <div class="card">
+        <div class="cb">
+          ${!hasForecast
+            ? `<div style="color:var(--text-2);font-size:14px">Upload statements to see your forecast here.</div>`
+            : `<table class="ft"><thead><tr><th>Month</th><th>Total</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>`}
+        </div>
+      </div>
+
+      ${accounts.length ? '<div class="sec-title">Per Account (12 months)</div>' + perAcc : ''}
+    </div>`;
+}
+
+function renderSettings() {
+  return `
+    <div class="hd"><h1>Settings</h1></div>
+    <div class="view">
+      <div class="card">
+        <div class="cb">
+          <div class="mi" onclick="App.exportData()">
+            <span class="mi-ic">📤</span>
+            <div class="mi-txt">Export Data<div class="mi-sub">Download all data as JSON backup</div></div>
+          </div>
+          <div class="mi" onclick="App.importData()">
+            <span class="mi-ic">📥</span>
+            <div class="mi-txt">Import Data<div class="mi-sub">Restore from a previous backup</div></div>
+          </div>
+          <div class="mi" style="color:var(--danger)" onclick="App.clearData()">
+            <span class="mi-ic">🗑️</span>
+            <div class="mi-txt">Clear All Data<div class="mi-sub" style="color:var(--text-2)">Delete all accounts and transactions</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="cb" style="font-size:13px;color:var(--text-2);line-height:1.65">
+          <strong style="color:var(--text);font-size:14px">📱 Add to iPhone Home Screen</strong><br>
+          Open this page in Safari → tap the Share button (□↑) at the bottom → choose <em>Add to Home Screen</em>. The app will appear just like a native app.<br><br>
+          <strong style="color:var(--text);font-size:14px">🔒 Your data is private</strong><br>
+          Everything is stored only on this device. Nothing is sent to any server.<br><br>
+          <strong style="color:var(--text);font-size:14px">📊 Supported Banks (CSV)</strong><br>
+          Barclays, Monzo, HSBC, Lloyds, Nationwide, Starling, NatWest / RBS, Santander, and most other UK banks that export CSV.
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:28px;color:var(--text-3);font-size:11px">
+        Family Finances · Data stored locally on device only
+      </div>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════
+   UPLOAD FLOW
+═══════════════════════════════════════════ */
+function uploadFormHTML() {
+  return `
+    <div class="upload-zone" id="uz" onclick="document.getElementById('fi').click()">
+      <div class="uz-icon">📄</div>
+      <div class="uz-txt">Tap to upload bank statement</div>
+      <div class="uz-hint">CSV or PDF · Barclays, Monzo, HSBC, Lloyds, Nationwide,<br>Starling, NatWest, Santander and more</div>
+    </div>
+    <input type="file" id="fi" accept=".csv,.pdf,text/csv,application/pdf" onchange="App.handleFile(this.files[0])">
+    <div id="upv"></div>`;
+}
+
+/* ═══════════════════════════════════════════
+   ESCAPE HTML
+═══════════════════════════════════════════ */
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ═══════════════════════════════════════════
+   APP
+═══════════════════════════════════════════ */
+const App = {
+  go(view, params = {}) {
+    destroyCharts();
+    S.view = view;
+    if (params.id) S.accId = params.id;
+
+    // update nav highlight
+    document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
+    const navMap = { home:'n-home', accounts:'n-accounts', forecast:'n-forecast', settings:'n-settings' };
+    if (navMap[view]) document.getElementById(navMap[view])?.classList.add('active');
+
+    const app = document.getElementById('app');
+    switch (view) {
+      case 'home':     app.innerHTML = renderHome(); break;
+      case 'accounts': app.innerHTML = renderAccounts(); break;
+      case 'account':  app.innerHTML = renderAccount(S.accId); break;
+      case 'forecast': app.innerHTML = renderForecast(); break;
+      case 'settings': app.innerHTML = renderSettings(); break;
+      default:         app.innerHTML = renderHome();
+    }
+    window.scrollTo(0, 0);
+
+    // post-render charts
+    if (view === 'account') {
+      const cd = buildAccountChartData(S.accId);
+      if (cd) lineChart('acc-chart', cd.labels, cd.datasets);
+    }
+    if (view === 'forecast') {
+      const cd = buildTotalChartData();
+      if (cd) lineChart('tot-chart', cd.labels, cd.datasets);
+    }
+  },
+
+  openModal(name) {
+    document.getElementById('modal-' + name).classList.add('open');
+  },
+  closeModal(name) {
+    document.getElementById('modal-' + name).classList.remove('open');
+  },
+
+  // ── Add Account ──────────────────────────
+  saveAccount() {
+    const name = document.getElementById('f-name').value.trim();
+    const type = document.getElementById('f-type').value;
+    const bank = document.getElementById('f-bank').value.trim();
+    const bal  = parseFloat(document.getElementById('f-bal').value) || 0;
+    if (!name) { alert('Please enter an account name'); return; }
+    DB.addAccount({ name, type, bank, init: bal, bal });
+    this.closeModal('add-account');
+    toast('Account added ✓');
+    this.go(S.view);
+  },
+
+  // ── Upload ───────────────────────────────
+  showUpload(id) {
+    S.accId = id;
+    const acc = DB.accounts().find(a => a.id === id);
+    document.getElementById('gen-title').textContent = 'Upload Statement';
+    document.getElementById('gen-body').innerHTML = uploadFormHTML();
+    document.getElementById('gen-body').insertAdjacentHTML('afterbegin',
+      `<div style="font-size:13px;color:var(--text-2);margin-bottom:14px">Account: <strong>${escHtml(acc?.name || '')}</strong></div>`);
+    this.openModal('gen');
+  },
+
+  async handleFile(file) {
+    if (!file) return;
+    const upv = document.getElementById('upv');
+    upv.innerHTML = '<div class="loading"><div class="spin"></div>Parsing statement…</div>';
+    try {
+      let txs;
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        txs = await PDF.parse(file);
+      } else {
+        const text = await file.text();
+        txs = CSV.parse(text);
+      }
+
+      if (!txs || !txs.length) {
+        upv.innerHTML = `<div class="err-box">
+          ⚠️ No transactions found in this file.<br><br>
+          <strong>Tips:</strong><br>
+          • Export CSV directly from your bank's website or app (don't open in Excel first)<br>
+          • For PDF: some bank PDFs are image-based — try CSV export instead<br>
+          • Make sure the file isn't empty or password-protected
+        </div>`;
+        return;
+      }
+
+      S.pendingTxs = txs;
+      const sample = txs.slice(0, 5);
+      upv.innerHTML = `
+        <div style="margin-top:16px">
+          <div class="sec-title">${txs.length} transactions found — preview</div>
+          <div class="card">
+            <div class="cb">
+              ${sample.map(t => `
+                <div class="pv">
+                  <div class="pv-row">
+                    <div class="pv-desc">${escHtml(t.desc)}</div>
+                    <div class="pv-amt" style="color:${t.amt >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtChg(t.amt)}</div>
+                  </div>
+                  <div class="pv-date">${fmtDate(t.date)}</div>
+                </div>`).join('')}
+              ${txs.length > 5 ? `<div style="text-align:center;padding:8px 0 0;font-size:12px;color:var(--text-3)">…and ${txs.length - 5} more</div>` : ''}
+            </div>
+          </div>
+          <button class="btn btn-p" style="margin-top:12px" onclick="App.commitUpload()">Import ${txs.length} Transactions</button>
+          <button class="btn btn-s" onclick="document.getElementById('fi').click()">Choose a Different File</button>
+        </div>`;
+    } catch (err) {
+      upv.innerHTML = `<div class="err-box">Error: ${escHtml(err.message)}</div>`;
+    }
+  },
+
+  commitUpload() {
+    if (!S.pendingTxs) return;
+    const added = DB.addTransactions(S.accId, S.pendingTxs);
+    S.pendingTxs = null;
+    this.closeModal('gen');
+    toast(`${added} new transactions imported ✓`);
+    this.go('account', { id: S.accId });
+  },
+
+  // ── Account menu ─────────────────────────
+  showAccMenu(id) {
+    const acc = DB.accounts().find(a => a.id === id);
+    document.getElementById('gen-title').textContent = escHtml(acc?.name || '');
+    document.getElementById('gen-body').innerHTML = `
+      <div class="mi" onclick="App.closeModal('gen');App.showUpload('${id}')">
+        <span class="mi-ic">📂</span><div class="mi-txt">Upload Statement</div>
+      </div>
+      <div class="mi" onclick="App.editBal('${id}')">
+        <span class="mi-ic">✏️</span><div class="mi-txt">Update Balance Manually</div>
+      </div>
+      <div class="mi" style="color:var(--danger)" onclick="App.deleteAcc('${id}')">
+        <span class="mi-ic">🗑️</span><div class="mi-txt">Delete Account</div>
+      </div>`;
+    this.openModal('gen');
+  },
+
+  editBal(id) {
+    const acc = DB.accounts().find(a => a.id === id);
+    const cur = DB.balance(id);
+    const v = prompt(`New balance for ${acc?.name}:`, cur);
+    if (v != null && !isNaN(parseFloat(v))) {
+      DB.updateAccount(id, { bal: parseFloat(v) });
+      this.closeModal('gen');
+      toast('Balance updated ✓');
+      this.go('account', { id });
+    }
+  },
+
+  deleteAcc(id) {
+    const acc = DB.accounts().find(a => a.id === id);
+    if (confirm(`Delete "${acc?.name}" and all its data? This cannot be undone.`)) {
+      DB.deleteAccount(id);
+      this.closeModal('gen');
+      toast('Account deleted');
+      this.go('home');
+    }
+  },
+
+  // ── Data management ───────────────────────
+  exportData() {
+    const d = DB.load();
+    const blob = new Blob([JSON.stringify(d, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `family-finances-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Data exported ✓');
+  },
+
+  importData() {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = '.json';
+    inp.onchange = async e => {
+      try {
+        const text = await e.target.files[0].text();
+        const d = JSON.parse(text);
+        if (!d.a || !d.t) throw new Error('Unrecognised format');
+        if (confirm(`Import ${d.a.length} accounts and ${d.t.length} transactions? Your current data will be replaced.`)) {
+          DB._d = d;
+          DB.save();
+          toast('Data imported ✓');
+          this.go('home');
+        }
+      } catch (err) { alert('Could not import: ' + err.message); }
+    };
+    inp.click();
+  },
+
+  clearData() {
+    if (confirm('Delete ALL data? This cannot be undone.')) {
+      localStorage.removeItem(DB.KEY);
+      DB._d = null;
+      toast('All data cleared');
+      this.go('home');
+    }
+  }
+};
+
+// ── Boot ──────────────────────────────────
+App.go('home');
+</script>
+</body>
+</html>

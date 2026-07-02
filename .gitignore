@@ -1,0 +1,6 @@
+# Never commit bank statements to this public repo
+*.pdf
+*.csv
+# Node / OS
+node_modules/
+.DS_Store
