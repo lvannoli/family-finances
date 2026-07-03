@@ -988,10 +988,10 @@ function renderForecast() {
   const accounts = DB.accounts();
   const totalBal = accounts.reduce((s,a) => s + DB.balance(a.id), 0);
   const allTxs = DB.txAll();
-  const avg = FC.avgChange(allTxs);
   const proj = window.Finance.projectTotal(accounts.map(a => ({
     balance: DB.balance(a.id), rate: a.rate, monthlyDeposit: a.monthlyDeposit, txs: DB.txFor(a.id),
   })), 12);
+  const avg = proj[0]?.chg ?? 0;
   const hasForecast = accounts.some(a => a.rate != null && a.rate !== '') || allTxs.length >= 2;
 
   const projIn12 = proj[11]?.bal ?? totalBal;
@@ -1004,9 +1004,10 @@ function renderForecast() {
 
   const perAcc = accounts.map(a => {
     const txs = DB.txFor(a.id);
-    const aAvg = FC.avgChange(txs);
     const aBal = DB.balance(a.id);
-    const aProj12 = window.Finance.projectAccount({ balance: aBal, rate: a.rate, monthlyDeposit: a.monthlyDeposit }, txs, 12)[11]?.bal ?? aBal;
+    const aProj = window.Finance.projectAccount({ balance: aBal, rate: a.rate, monthlyDeposit: a.monthlyDeposit }, txs, 12);
+    const aAvg = aProj[0]?.chg ?? 0;
+    const aProj12 = aProj[11]?.bal ?? aBal;
     const t = ty(a.type);
     return `
       <div class="card" style="margin-bottom:10px">
