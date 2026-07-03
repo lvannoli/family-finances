@@ -1024,6 +1024,27 @@ function renderForecast() {
       </div>`;
   }).join('');
 
+  const isa = window.Finance.isaAllowanceSummary(
+    accounts.map(a => ({ account: a, txs: DB.txFor(a.id) }))
+  );
+  const isaFamilyCount = accounts.filter(a => window.Finance.isaFamily(a.type)).length;
+  const isaCard = isaFamilyCount === 0 ? '' : `
+    <div class="sec-title">ISA Allowance ${isa.taxYearLabel}</div>
+    <div class="card">
+      <div class="cb">
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600">
+          <span>Used ${gbp(isa.isaUsed)}</span><span style="color:var(--text-2)">of ${gbp(20000)}</span>
+        </div>
+        <div class="lisa-bar-bg" style="margin:6px 0"><div class="lisa-bar" style="width:${isa.isaPct}%"></div></div>
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:12px">${gbp(isa.isaRemaining)} remaining · ${isa.isaPct}% used</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600">
+          <span>LISA ${gbp(isa.lisaUsed)}</span><span style="color:var(--text-2)">of ${gbp(4000)}</span>
+        </div>
+        <div class="lisa-bar-bg" style="margin:6px 0"><div class="lisa-bar" style="width:${isa.lisaPct}%"></div></div>
+        <div style="font-size:12px;color:var(--text-2)">${gbp(isa.lisaRemaining)} LISA allowance left · bonus earned ${gbp(isa.lisaBonus)}</div>
+      </div>
+    </div>`;
+
   return `
     <div class="hd"><h1>Forecast</h1></div>
     <div class="view">
@@ -1045,6 +1066,7 @@ function renderForecast() {
         </div>
       </div>
 
+      ${isaCard}
       ${accounts.length ? '<div class="sec-title">Per Account (12 months)</div>' + perAcc : ''}
     </div>`;
 }
