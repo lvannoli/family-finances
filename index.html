@@ -282,6 +282,7 @@ input[type=file] { display: none; }
   opacity: 0; transition: opacity .2s; pointer-events: none;
 }
 .toast.on { opacity: 1; }
+.toast-action { margin-left: 14px; background: none; border: none; color: var(--primary-light); font: inherit; font-weight: 700; cursor: pointer; }
 
 /* ── BACK BTN ────────────────────────────── */
 .back { background: none; border: none; color: #fff; font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 2px 0; }
@@ -576,10 +577,20 @@ const FC = {
 ═══════════════════════════════════════════ */
 const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: null };
 
-function toast(msg, ms=2600) {
+function toast(msg, ms=2600, action=null) {
   const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('on');
-  setTimeout(() => el.classList.remove('on'), ms);
+  clearTimeout(el._t);
+  el.innerHTML = '';
+  el.appendChild(document.createTextNode(msg));
+  if (action) {
+    const b = document.createElement('button');
+    b.className = 'toast-action';
+    b.textContent = action.label;
+    b.onclick = () => { el.classList.remove('on'); action.fn(); };
+    el.appendChild(b);
+  }
+  el.classList.add('on');
+  el._t = setTimeout(() => el.classList.remove('on'), ms);
 }
 
 function destroyCharts() {
@@ -1088,6 +1099,24 @@ const App = {
         : 'Sync complete');
   },
 
+  _undo: null,
+  snapshot() { this._undo = JSON.parse(JSON.stringify(DB.load())); },
+  undoLast() {
+    if (!this._undo) return;
+    DB._d = this._undo; this._undo = null; DB.save();
+    toast('Restored ✓');
+    this.go(S.view || 'home');
+  },
+  confirmDanger(title, bodyHtml, confirmLabel, onConfirm) {
+    document.getElementById('gen-title').textContent = title;
+    document.getElementById('gen-body').innerHTML = `
+      <div style="font-size:14px;color:var(--text-2);line-height:1.6;margin-bottom:16px">${bodyHtml}</div>
+      <button class="btn" id="gen-danger-ok" style="background:var(--danger);color:#fff">${escHtml(confirmLabel)}</button>
+      <button class="btn btn-s" onclick="App.closeModal('gen')">Cancel</button>`;
+    this.openModal('gen');
+    document.getElementById('gen-danger-ok').onclick = () => { this.closeModal('gen'); onConfirm(); };
+  },
+
   openModal(name) {
     if (name === 'add-account' && !S.editId) {
       S.editId = null;
@@ -1258,23 +1287,33 @@ const App = {
   editBal(id) {
     const acc = DB.accounts().find(a => a.id === id);
     const cur = DB.balance(id);
-    const v = prompt(`New balance for ${acc?.name}:`, cur);
-    if (v != null && !isNaN(parseFloat(v))) {
-      DB.updateAccount(id, { bal: parseFloat(v) });
-      this.closeModal('gen');
-      toast('Balance updated ✓');
-      this.go('account', { id });
-    }
+    document.getElementById('gen-title').textContent = 'Update balance';
+    document.getElementById('gen-body').innerHTML = `
+      <label class="fl">New balance for ${escHtml(acc?.name||'')} (£)</label>
+      <input class="fi" id="gen-bal-input" type="number" step="0.01" value="${cur}">
+      <button class="btn btn-p" id="gen-bal-save" style="margin-top:12px">Save</button>
+      <button class="btn btn-s" onclick="App.closeModal('gen')">Cancel</button>`;
+    this.openModal('gen');
+    document.getElementById('gen-bal-save').onclick = () => {
+      const v = parseFloat(document.getElementById('gen-bal-input').value);
+      if (isNaN(v)) return;
+      DB.updateAccount(id, { bal: v, balSource: 'manual', balAt: new Date().toISOString() });
+      this.closeModal('gen'); toast('Balance updated ✓'); this.go('account', { id });
+    };
   },
 
   deleteAcc(id) {
     const acc = DB.accounts().find(a => a.id === id);
-    if (confirm(`Delete "${acc?.name}" and all its data? This cannot be undone.`)) {
-      DB.deleteAccount(id);
-      this.closeModal('gen');
-      toast('Account deleted');
-      this.go('home');
-    }
+    const n = DB.txFor(id).length;
+    this.confirmDanger('Delete account',
+      `Delete <strong>${escHtml(acc?.name||'')}</strong> and its ${n} transaction${n===1?'':'s'}? You can undo for a few seconds.`,
+      'Delete', () => {
+        this.snapshot();
+        DB.deleteAccount(id);
+        this.closeModal('gen');
+        toast('Account deleted', 6000, { label: 'Undo', fn: () => this.undoLast() });
+        this.go('home');
+      });
   },
 
   // ── Data management ───────────────────────
@@ -1294,28 +1333,37 @@ const App = {
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = '.json';
     inp.onchange = async e => {
+      let d;
       try {
-        const text = await e.target.files[0].text();
-        const d = JSON.parse(text);
+        d = JSON.parse(await e.target.files[0].text());
         if (!d.a || !d.t) throw new Error('Unrecognised format');
-        if (confirm(`Import ${d.a.length} accounts and ${d.t.length} transactions? Your current data will be replaced.`)) {
-          DB._d = d;
-          DB.save();
-          toast('Data imported ✓');
+      } catch (err) {
+        this.confirmDanger('Import failed', `Could not read that file: ${escHtml(err.message)}`, 'OK', () => {});
+        return;
+      }
+      this.confirmDanger('Replace all data?',
+        `Import <strong>${d.a.length} account${d.a.length===1?'':'s'} and ${d.t.length} transaction${d.t.length===1?'':'s'}</strong>, replacing your current data? A backup downloads first, and you can undo.`,
+        'Replace', () => {
+          this.exportData();      // auto-backup current data first
+          this.snapshot();
+          DB._d = d; DB.save();
+          toast('Data imported ✓', 6000, { label: 'Undo', fn: () => this.undoLast() });
           this.go('home');
-        }
-      } catch (err) { alert('Could not import: ' + err.message); }
+        });
     };
     inp.click();
   },
 
   clearData() {
-    if (confirm('Delete ALL data? This cannot be undone.')) {
-      localStorage.removeItem(DB.KEY);
-      DB._d = null;
-      toast('All data cleared');
-      this.go('home');
-    }
+    const a = DB.accounts().length, t = DB.txAll().length;
+    this.confirmDanger('Clear all data',
+      `Delete <strong>all ${a} account${a===1?'':'s'} and ${t} transaction${t===1?'':'s'}</strong>? You can undo for a few seconds.`,
+      'Delete everything', () => {
+        this.snapshot();
+        localStorage.removeItem(DB.KEY); DB._d = null;
+        toast('All data cleared', 6000, { label: 'Undo', fn: () => this.undoLast() });
+        this.go('home');
+      });
   }
 };
 
