@@ -28,3 +28,31 @@ test('detect classifies the existing formats', () => {
   assert.equal(CSV.detect(['date','transactions','debits','credits','balance']), 'nationwide');
   assert.equal(CSV.detect(['date','description','amount','balance']), 'generic');
 });
+
+test('detect recognizes Trading212 (action + total)', () => {
+  assert.equal(CSV.detect(['action','time','notes','id','total','currency total']), 'trading212');
+});
+
+test('trading212: deposit rows parse and are flagged as contributions', () => {
+  const raw = [
+    'Action,Time,Notes,ID,Total,Currency (Total)',
+    'Deposit,06/06/2026 12:08,Transaction ID: ba34e77e,019e9cd5,20000,GBP',
+    'Deposit,23/06/2026 01:31,Bank Transfer,019ef21a,9542.67,GBP',
+    ',,,,25542.67,',
+  ].join('\n');
+  const txs = CSV.parse(raw);
+  assert.equal(txs.length, 2);                       // summary row skipped
+  assert.deepEqual(txs[0], { date: '2026-06-06', desc: 'Deposit', amt: 20000, contribution: true });
+  assert.deepEqual(txs[1], { date: '2026-06-23', desc: 'Bank Transfer', amt: 9542.67, contribution: true });
+});
+
+test('trading212: non-deposit actions are not flagged as contributions', () => {
+  const raw = [
+    'Action,Time,Notes,ID,Total,Currency (Total)',
+    'Withdrawal,10/06/2026 09:00,Cash out,019eff,-500,GBP',
+  ].join('\n');
+  const txs = CSV.parse(raw);
+  assert.equal(txs.length, 1);
+  assert.equal(txs[0].amt, -500);
+  assert.equal(txs[0].contribution, undefined);
+});

@@ -22,6 +22,7 @@ export const CSV = {
 
   detect(h) {
     const s = h.join(',');
+    if (s.includes('action') && s.includes('total')) return 'trading212';
     if (s.includes('money out') || s.includes('money in')) return 'monzo';
     if (s.includes('debit amount') || s.includes('credit amount')) return 'lloyds';
     if (s.includes('debits') && s.includes('credits')) return 'nationwide';
@@ -37,8 +38,16 @@ export const CSV = {
       return '';
     };
     let date, desc, amt, bal;
+    let t212Contribution = false;
 
-    if (fmt === 'monzo') {
+    if (fmt === 'trading212') {
+      date = this.parseDate(g('time'));
+      const notes = g('notes');
+      const action = g('action');
+      desc = (notes && !/^transaction id:/i.test(notes)) ? notes : (action || 'Transaction');
+      amt = this.parseAmt(g('total'));
+      t212Contribution = action.toLowerCase() === 'deposit';
+    } else if (fmt === 'monzo') {
       date = this.parseDate(g('date'));
       desc = g('name','description','merchant');
       const mIn  = this.parseAmt(g('money in'));
@@ -75,6 +84,7 @@ export const CSV = {
     if (!date || amt == null || isNaN(amt)) return null;
     const tx = { date, desc: desc || 'Transaction', amt: Math.round(amt * 100) / 100 };
     if (bal != null && !isNaN(bal)) tx.bal = Math.round(bal * 100) / 100;
+    if (t212Contribution) tx.contribution = true;
     return tx;
   },
 
