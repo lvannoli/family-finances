@@ -1204,11 +1204,12 @@ const App = {
     const f = this._readAccountForm();
     if (!f.name) { alert('Please enter an account name'); return; }
     if (S.editId) {
-      DB.updateAccount(S.editId, { name: f.name, type: f.type, bank: f.bank, bal: f.bal, rate: f.rate, monthlyDeposit: f.monthlyDeposit, contribTaxYear: f.contribTaxYear });
+      const id = S.editId;
+      DB.updateAccount(id, { name: f.name, type: f.type, bank: f.bank, bal: f.bal, rate: f.rate, monthlyDeposit: f.monthlyDeposit, contribTaxYear: f.contribTaxYear });
       S.editId = null;
       this.closeModal('add-account');
       toast('Account updated ✓');
-      this.go('account', { id: DB.accounts().find(a => a.id) ? S.accId : S.view });
+      this.go('account', { id });
     } else {
       DB.addAccount({ name: f.name, type: f.type, bank: f.bank, init: f.bal, bal: f.bal, rate: f.rate, monthlyDeposit: f.monthlyDeposit, contribTaxYear: f.contribTaxYear });
       this.closeModal('add-account');
