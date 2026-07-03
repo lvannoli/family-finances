@@ -801,7 +801,7 @@ function renderAccount(id) {
       <div class="sec-title">LISA Status</div>
       <div class="card lisa-card">
         <div class="cb">
-          <div style="font-size:11px;opacity:.75;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Tax Year ${ls.yr}</div>
+          <div style="font-size:13px;font-weight:500;color:var(--text-2)">Tax year ${ls.yr}</div>
           <div class="lisa-bar-bg"><div class="lisa-bar" style="transform:scaleX(${ls.pct/100})"></div></div>
           <div style="font-size:11px;opacity:.65;text-align:right;margin-top:-2px;margin-bottom:4px">${ls.pct}% of £4,000 allowance</div>
           <div class="lisa-grid">
@@ -833,7 +833,7 @@ function renderAccount(id) {
 
       <div class="card">
         <div class="cb">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--text-2)">Current Balance</div>
+          <div style="font-size:13px;font-weight:500;color:var(--text-2)">Current balance</div>
           <div style="font-size:34px;font-weight:800;margin:4px 0;letter-spacing:-1px">${gbp(bal)}</div>
           ${avg !== 0 ? `<div style="font-size:13px;color:${avg >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtChg(avg)} avg per month</div>` : ''}
         </div>
@@ -930,7 +930,7 @@ function renderForecast() {
     <div class="view">
       <div class="card">
         <div class="cb">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--text-2)">Total in 12 Months</div>
+          <div style="font-size:13px;font-weight:500;color:var(--text-2)">Total in 12 months</div>
           <div style="font-size:30px;font-weight:800;margin:4px 0;letter-spacing:-1px">${gbp(projIn12)}</div>
           <div style="font-size:13px;color:${avg >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtChg(avg)} avg per month across all accounts</div>
         </div>
