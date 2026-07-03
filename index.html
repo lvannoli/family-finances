@@ -438,13 +438,15 @@ const DB = {
   addTransactions(aid, txs) {
     const d = this.load();
     const existing = new Set(d.t.filter(t => t.aid === aid).map(t => `${t.date}|${t.desc}|${t.amt}`));
-    let added = 0;
+    let added = 0, skipped = 0;
     for (const tx of txs) {
       const key = `${tx.date}|${tx.desc}|${tx.amt}`;
       if (!existing.has(key)) {
         d.t.push({ id: 't' + Date.now() + Math.random().toString(36).slice(2,6), aid, ...tx });
         existing.add(key);
         added++;
+      } else {
+        skipped++;
       }
     }
     // Update balance from latest transaction with balance data
@@ -454,7 +456,7 @@ const DB = {
       if (acc) acc.bal = withBal.bal;
     }
     this.save();
-    return added;
+    return { added, skipped };
   },
 
   balance(id) {
@@ -1219,10 +1221,10 @@ const App = {
 
   commitUpload() {
     if (!S.pendingTxs) return;
-    const added = DB.addTransactions(S.accId, S.pendingTxs);
+    const { added, skipped } = DB.addTransactions(S.accId, S.pendingTxs);
     S.pendingTxs = null;
     this.closeModal('gen');
-    toast(`${added} new transactions imported ✓`);
+    toast(skipped ? `${added} imported, ${skipped} skipped as duplicates ✓` : `${added} transactions imported ✓`);
     this.go('account', { id: S.accId });
   },
 
