@@ -453,7 +453,7 @@ const DB = {
     const withBal = [...txs].reverse().find(t => t.bal !== undefined);
     if (withBal) {
       const acc = d.a.find(a => a.id === aid);
-      if (acc) acc.bal = withBal.bal;
+      if (acc) { acc.bal = withBal.bal; acc.balSource = 'statement'; acc.balAt = new Date().toISOString(); }
     }
     this.save();
     return { added, skipped };
@@ -491,6 +491,12 @@ const fmtShort = s => {
   return new Date(s + 'T12:00:00').toLocaleDateString('en-GB', {month:'short', year:'2-digit'});
 };
 const fmtChg = function(n) { return (n >= 0 ? '+' : '') + gbp(n); };
+function balCaption(acc) {
+  if (!acc || !acc.balSource) return '';
+  const when = acc.balAt ? new Date(acc.balAt).toLocaleDateString('en-GB', {day:'numeric', month:'short'}) : '';
+  const src = acc.balSource === 'statement' ? 'From statement' : 'Manually set';
+  return when ? `${src} · ${when}` : src;
+}
 
 /* ═══════════════════════════════════════════
    PDF PARSER
@@ -837,6 +843,7 @@ function renderAccount(id) {
         <div class="cb">
           <div style="font-size:13px;font-weight:500;color:var(--text-2)">Current balance</div>
           <div style="font-size:34px;font-weight:800;margin:4px 0;letter-spacing:-1px">${gbp(bal)}</div>
+          ${balCaption(acc) ? `<div style="font-size:12px;color:var(--text-2);margin-top:2px">${balCaption(acc)}</div>` : ''}
           ${avg !== 0 ? `<div style="font-size:13px;color:${avg >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtChg(avg)} avg per month</div>` : ''}
         </div>
         ${txs.length >= 2 ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="acc-chart"></canvas></div></div>` : ''}
