@@ -154,6 +154,9 @@ body {
 .t-lisa     { background: #ede9fe; color: #5b21b6; }
 .t-business { background: #cffafe; color: #164e63; }
 .t-other    { background: #f1f5f9; color: #374151; }
+.t-cash-isa { background: #e0f2fe; color: #075985; }
+.t-ss-isa   { background: #fef3c7; color: #92400e; }
+.t-ss-lisa  { background: #fce7f3; color: #9d174d; }
 
 /* ── MODALS ──────────────────────────────── */
 .overlay {
@@ -333,7 +336,10 @@ input[type=file] { display: none; }
       <label class="fl">Type</label>
       <select class="fs" id="f-type">
         <option value="savings">Personal Savings</option>
+        <option value="cash_isa">Cash ISA</option>
+        <option value="ss_isa">Stocks &amp; Shares ISA</option>
         <option value="lisa">Cash LISA</option>
+        <option value="ss_lisa">Stocks &amp; Shares LISA</option>
         <option value="business">Business Savings</option>
         <option value="other">Other</option>
       </select>
@@ -363,6 +369,11 @@ input[type=file] { display: none; }
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script type="module">
+  import * as Finance from './js/finance.js';
+  window.Finance = Finance;
+  window.dispatchEvent(new Event('finance-ready'));
+</script>
 <script>
 // family finances app
 
@@ -442,13 +453,7 @@ const DB = {
 /* ═══════════════════════════════════════════
    TYPE CONFIG
 ═══════════════════════════════════════════ */
-const TY = {
-  savings:  { lbl: 'Personal Savings', icon: '🏦', col: '#059669', cls: 't-savings' },
-  lisa:     { lbl: 'Cash LISA',        icon: '🏠', col: '#7c3aed', cls: 't-lisa'    },
-  business: { lbl: 'Business Savings', icon: '💼', col: '#0891b2', cls: 't-business'},
-  other:    { lbl: 'Other',            icon: '💰', col: '#64748b', cls: 't-other'   }
-};
-const ty = t => TY[t] || TY.other;
+const ty = t => window.Finance.typeInfo(t);
 
 /* ═══════════════════════════════════════════
    FORMATTERS
@@ -663,57 +668,8 @@ const PDF = {
    FORECAST
 ═══════════════════════════════════════════ */
 const FC = {
-  monthly(txs) {
-    const m = {};
-    for (const t of txs) {
-      const k = t.date.slice(0,7);
-      if (!m[k]) m[k] = { net: 0, bal: null, in: 0, out: 0 };
-      m[k].net += t.amt;
-      if (t.amt > 0) m[k].in += t.amt; else m[k].out += Math.abs(t.amt);
-      if (t.bal != null) m[k].bal = t.bal;
-    }
-    return Object.entries(m).sort((a,b) => a[0].localeCompare(b[0]));
-  },
-
-  avgChange(txs, n = 6) {
-    const mo = this.monthly(txs).slice(-n);
-    if (!mo.length) return 0;
-    return mo.reduce((s,[,m]) => s + m.net, 0) / mo.length;
-  },
-
-  project(balance, avgMo, months = 12) {
-    const now = new Date();
-    let bal = balance;
-    return Array.from({length: months}, (_,i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
-      bal += avgMo;
-      return {
-        lbl: d.toLocaleDateString('en-GB', {month:'short', year:'numeric'}),
-        key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,
-        bal: Math.round(bal*100)/100,
-        chg: Math.round(avgMo*100)/100
-      };
-    });
-  },
-
-  lisa(txs) {
-    const now = new Date();
-    const tyStart = (now.getMonth() < 3 || (now.getMonth() === 3 && now.getDate() < 6))
-      ? new Date(now.getFullYear()-1, 3, 6)
-      : new Date(now.getFullYear(), 3, 6);
-    const contrib = txs
-      .filter(t => new Date(t.date + 'T12:00:00') >= tyStart && t.amt > 0)
-      .reduce((s,t) => s + t.amt, 0);
-    const bonus = Math.min(contrib, 4000) * 0.25;
-    const remaining = Math.max(0, 4000 - contrib);
-    return {
-      yr: `${tyStart.getFullYear()}/${String(tyStart.getFullYear()+1).slice(2)}`,
-      contrib: Math.round(contrib*100)/100,
-      bonus:   Math.round(bonus*100)/100,
-      remaining: Math.round(remaining*100)/100,
-      pct: Math.min(100, Math.round((contrib/4000)*100))
-    };
-  }
+  monthly:   txs => window.Finance.monthly(txs),
+  avgChange: (txs, n) => window.Finance.avgChange(txs, n),
 };
 
 /* ═══════════════════════════════════════════
@@ -763,9 +719,8 @@ function buildAccountChartData(accId) {
 
   const monthly = FC.monthly(txs);
   const curBal = DB.balance(accId);
-  const avgChg = FC.avgChange(txs);
-  const proj = FC.project(curBal, avgChg, 6);
   const acc = DB.accounts().find(a => a.id === accId);
+  const proj = window.Finance.projectAccount({ balance: curBal, rate: acc?.rate, monthlyDeposit: acc?.monthlyDeposit }, txs, 6);
 
   // Build historical balance series
   let histBals = monthly.map(([k,m]) => ({
@@ -819,8 +774,9 @@ function buildTotalChartData() {
   if (allTxs.length < 2) return null;
 
   const totalBal = accounts.reduce((s,a) => s + DB.balance(a.id), 0);
-  const avgChg = FC.avgChange(allTxs);
-  const proj = FC.project(totalBal, avgChg, 12);
+  const proj = window.Finance.projectTotal(DB.accounts().map(a => ({
+    balance: DB.balance(a.id), rate: a.rate, monthlyDeposit: a.monthlyDeposit, txs: DB.txFor(a.id),
+  })), 12);
 
   // Build monthly total from per-account balances
   const monthly = FC.monthly(allTxs);
@@ -849,7 +805,10 @@ function buildTotalChartData() {
 function renderAccountCard(a) {
   const bal = DB.balance(a.id);
   const txs = DB.txFor(a.id);
-  const avg = txs.length > 5 ? FC.avgChange(txs) : null;
+  const hasRate = a.rate != null && a.rate !== '';
+  const avg = hasRate
+    ? window.Finance.projectAccount({ balance: DB.balance(a.id), rate: a.rate, monthlyDeposit: a.monthlyDeposit }, txs, 1)[0].chg
+    : (txs.length > 5 ? FC.avgChange(txs) : null);
   const t = ty(a.type);
   const trendHtml = avg != null
     ? `<div class="ac-trend ${avg >= 0 ? 'up' : 'dn'}">${fmtChg(avg)}/mo</div>`
@@ -921,8 +880,9 @@ function renderAccount(id) {
   const txs = DB.txFor(id).sort((a,b) => b.date.localeCompare(a.date));
   const monthly = FC.monthly(txs);
   const avg = FC.avgChange(txs);
-  const proj = FC.project(bal, avg, 12);
-  const hasEnoughForForecast = monthly.length >= 2;
+  const proj = window.Finance.projectAccount({ balance: bal, rate: acc.rate, monthlyDeposit: acc.monthlyDeposit }, txs, 12);
+  const hasRate = acc.rate != null && acc.rate !== '';
+  const hasEnoughForForecast = hasRate || monthly.length >= 2;
 
   const txHtml = !txs.length
     ? `<div style="text-align:center;padding:20px 0;color:var(--text-3);font-size:14px">Upload a statement to see transactions</div>`
@@ -944,8 +904,8 @@ function renderAccount(id) {
     </tr>`).join('');
 
   let lisaHtml = '';
-  if (acc.type === 'lisa') {
-    const ls = FC.lisa(txs);
+  if (window.Finance.lisaFamily(acc.type)) {
+    const ls = window.Finance.lisaSummary(acc, txs);
     lisaHtml = `
       <div class="sec-title">LISA Status</div>
       <div class="card lisa-card">
@@ -1017,8 +977,10 @@ function renderForecast() {
   const totalBal = accounts.reduce((s,a) => s + DB.balance(a.id), 0);
   const allTxs = DB.txAll();
   const avg = FC.avgChange(allTxs);
-  const proj = FC.project(totalBal, avg, 12);
-  const hasForecast = allTxs.length >= 2;
+  const proj = window.Finance.projectTotal(accounts.map(a => ({
+    balance: DB.balance(a.id), rate: a.rate, monthlyDeposit: a.monthlyDeposit, txs: DB.txFor(a.id),
+  })), 12);
+  const hasForecast = accounts.some(a => a.rate != null && a.rate !== '') || allTxs.length >= 2;
 
   const projIn12 = proj[11]?.bal ?? totalBal;
   const forecastRows = proj.map(p => `
@@ -1032,7 +994,7 @@ function renderForecast() {
     const txs = DB.txFor(a.id);
     const aAvg = FC.avgChange(txs);
     const aBal = DB.balance(a.id);
-    const aProj12 = FC.project(aBal, aAvg, 12)[11]?.bal ?? aBal;
+    const aProj12 = window.Finance.projectAccount({ balance: aBal, rate: a.rate, monthlyDeposit: a.monthlyDeposit }, txs, 12)[11]?.bal ?? aBal;
     const t = ty(a.type);
     return `
       <div class="card" style="margin-bottom:10px">
@@ -1364,7 +1326,8 @@ window.DB = DB;
 window.App = App;
 window.S = S;
 window.toast = toast;
-App.go('home');
+if (window.Finance) App.go('home');
+else window.addEventListener('finance-ready', () => App.go('home'), { once: true });
 </script>
 <script type="module" src="js/app-sync.js"></script>
 </body>
