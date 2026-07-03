@@ -1108,6 +1108,7 @@ function renderSettings() {
           <div style="font-size:11px;color:var(--danger);margin-bottom:12px">If you lose the passphrase your synced data cannot be recovered.</div>
           <button class="btn btn-p" onclick="window.Sync.saveSettings()">Save &amp; Sync</button>
           <button class="btn btn-s" onclick="window.Sync.syncNow()">Sync Now</button>
+          ${(window.Sync && window.Sync.cfg().owner && window.Sync.cfg().token) ? `<button class="btn btn-s" onclick="window.Sync.createInviteLink()">Create invite link</button>` : ''}
         </div>
       </div>
 

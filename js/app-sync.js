@@ -1,6 +1,7 @@
 import { encryptJSON, decryptJSON } from './crypto.js';
 import { GitHubClient } from './github.js';
 import { SyncEngine } from './sync.js';
+import { buildInviteUrl, parseInvite } from './invite.js';
 
 const CFG_KEY = 'ff_sync_cfg';   // { owner, repo, token }
 const PASS_KEY = 'ff_pass';      // passphrase (per-device)
@@ -139,6 +140,22 @@ function saveSettings() {
   startup();
 }
 
+function createInviteLink() {
+  const cfg = loadCfg();
+  if (!cfg.owner || !cfg.token) {
+    window.alert('Set up sync on this device first (username + token), then create an invite link.');
+    return;
+  }
+  const base = location.origin + location.pathname;
+  const url = buildInviteUrl({ owner: cfg.owner, repo: cfg.repo || 'family-finances-data', token: cfg.token }, base);
+  const note = 'Invite link copied.\n\nTreat it like a password — it connects a device to your finances. The passphrase is NOT in the link and is still required on the new device.';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => window.alert(note), () => window.prompt('Copy this invite link (treat like a password):', url));
+  } else {
+    window.prompt('Copy this invite link (treat like a password):', url);
+  }
+}
+
 // Wrap DB.save so every local change schedules a push.
 const _save = window.DB.save.bind(window.DB);
 window.DB.save = function () { _save(); onLocalChange(); };
@@ -154,6 +171,7 @@ window.Sync = {
   status: () => status,
   cfg: loadCfg,
   hasPass: () => !!getPass(),
+  createInviteLink,
 };
 
 startup();
