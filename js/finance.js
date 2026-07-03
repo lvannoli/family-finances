@@ -92,3 +92,38 @@ export function projectTotal(entries = [], months = 12, now = new Date()) {
     };
   });
 }
+
+export function lisaSummary(account, txs = [], now = new Date()) {
+  const contrib = contributionsThisTaxYear(account, txs, now);
+  const bonus = Math.min(contrib, LISA_ALLOWANCE) * LISA_BONUS_RATE;
+  const remaining = Math.max(0, LISA_ALLOWANCE - contrib);
+  return {
+    yr: taxYearLabel(now),
+    contrib: Math.round(contrib * 100) / 100,
+    bonus: Math.round(bonus * 100) / 100,
+    remaining: Math.round(remaining * 100) / 100,
+    pct: Math.min(100, Math.round((contrib / LISA_ALLOWANCE) * 100)),
+  };
+}
+
+export function isaAllowanceSummary(entries = [], now = new Date()) {
+  let isaUsed = 0, lisaUsed = 0;
+  for (const { account, txs } of entries) {
+    if (!isaFamily(account.type)) continue;
+    const c = contributionsThisTaxYear(account, txs || [], now);
+    isaUsed += c;
+    if (lisaFamily(account.type)) lisaUsed += c;
+  }
+  isaUsed = Math.round(isaUsed * 100) / 100;
+  lisaUsed = Math.round(lisaUsed * 100) / 100;
+  return {
+    taxYearLabel: taxYearLabel(now),
+    isaUsed,
+    isaRemaining: Math.round(Math.max(0, ISA_ALLOWANCE - isaUsed) * 100) / 100,
+    isaPct: Math.min(100, Math.round((isaUsed / ISA_ALLOWANCE) * 100)),
+    lisaUsed,
+    lisaRemaining: Math.round(Math.max(0, LISA_ALLOWANCE - lisaUsed) * 100) / 100,
+    lisaPct: Math.min(100, Math.round((lisaUsed / LISA_ALLOWANCE) * 100)),
+    lisaBonus: Math.round(Math.min(lisaUsed, LISA_ALLOWANCE) * LISA_BONUS_RATE * 100) / 100,
+  };
+}

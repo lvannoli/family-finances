@@ -5,6 +5,7 @@ import {
   ISA_ALLOWANCE, LISA_ALLOWANCE,
   currentTaxYearStart, taxYearLabel, contributionsThisTaxYear,
   monthly, avgChange, projectAccount, projectTotal,
+  lisaSummary, isaAllowanceSummary,
 } from '../js/finance.js';
 
 test('TYPES has the 7 expected keys with isa/lisa flags', () => {
@@ -108,4 +109,40 @@ test('projectTotal sums per-account projections month by month', () => {
   ], 2, now);
   assert.equal(total[0].bal, 1510);
   assert.equal(total[1].bal, 1520.10);
+});
+
+test('lisaSummary vs £4,000 with 25% bonus', () => {
+  const now = new Date(2026, 5, 1);
+  const s = lisaSummary({ type: 'lisa', contribTaxYear: 2000 }, [], now);
+  assert.equal(s.contrib, 2000);
+  assert.equal(s.bonus, 500);
+  assert.equal(s.remaining, 2000);
+  assert.equal(s.pct, 50);
+  assert.equal(s.yr, '2026/27');
+});
+
+test('lisaSummary caps bonus at the £4,000 contribution ceiling', () => {
+  const now = new Date(2026, 5, 1);
+  const s = lisaSummary({ type: 'lisa', contribTaxYear: 5000 }, [], now);
+  assert.equal(s.bonus, 1000);       // 25% of 4000, not 5000
+  assert.equal(s.remaining, 0);
+  assert.equal(s.pct, 100);
+});
+
+test('isaAllowanceSummary sums ISA-family vs £20k and LISA-family vs £4k', () => {
+  const now = new Date(2026, 5, 1);
+  const entries = [
+    { account: { type: 'cash_isa', contribTaxYear: 10000 }, txs: [] },
+    { account: { type: 'ss_isa',   contribTaxYear: 3000 },  txs: [] },
+    { account: { type: 'lisa',     contribTaxYear: 2000 },  txs: [] },
+    { account: { type: 'savings',  contribTaxYear: 9999 },  txs: [] }, // not ISA-family, ignored
+  ];
+  const s = isaAllowanceSummary(entries, now);
+  assert.equal(s.isaUsed, 15000);
+  assert.equal(s.isaRemaining, 5000);
+  assert.equal(s.isaPct, 75);
+  assert.equal(s.lisaUsed, 2000);
+  assert.equal(s.lisaRemaining, 2000);
+  assert.equal(s.lisaBonus, 500);
+  assert.equal(s.taxYearLabel, '2026/27');
 });
