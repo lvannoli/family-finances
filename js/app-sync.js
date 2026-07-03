@@ -156,6 +156,61 @@ function createInviteLink() {
   }
 }
 
+function showPassphraseBar(msg) {
+  const bar = document.getElementById('pass-bar');
+  if (!bar) return;
+  bar.style.display = '';
+  const err = document.getElementById('pass-bar-err'); if (err) err.textContent = msg || '';
+  const inp = document.getElementById('pass-bar-input'); if (inp) { inp.value = ''; inp.focus?.(); }
+}
+
+function hidePassphraseBar() {
+  const bar = document.getElementById('pass-bar'); if (bar) bar.style.display = 'none';
+}
+
+function setPassBarError(msg) {
+  const err = document.getElementById('pass-bar-err'); if (err) err.textContent = msg || '';
+}
+
+async function submitInvitePassphrase() {
+  const inp = document.getElementById('pass-bar-input');
+  const pass = inp ? inp.value : '';
+  if (!pass) { setPassBarError('Enter your passphrase.'); return; }
+  const cfg = loadCfg();
+  if (!cfg.owner || !cfg.token) { setPassBarError('Missing sync connection — reopen your invite link.'); return; }
+  const btn = document.getElementById('pass-bar-btn');
+  const testEngine = new SyncEngine({
+    client: new GitHubClient({ owner: cfg.owner, repo: cfg.repo || 'family-finances-data', token: cfg.token }),
+    passphrase: pass,
+    crypto: { encryptJSON, decryptJSON },
+    deviceId: getDeviceId(),
+  });
+  if (btn) btn.disabled = true;
+  setPassBarError('');
+  try {
+    const remote = await testEngine.pull();     // decrypts; throws WRONG_PASSPHRASE on bad key
+    savePass(pass);
+    engine = testEngine;
+    if (remote && remote.data) applyRemote(remote);
+    setStatus('synced');
+    hidePassphraseBar();
+    window.toast('Synced ✓');
+  } catch (e) {
+    if (e && e.message === 'WRONG_PASSPHRASE') setPassBarError('Incorrect passphrase — try again.');
+    else setPassBarError('Couldn’t reach sync — check your connection and retry.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function consumeInviteIfPresent() {
+  const parsed = parseInvite(location.hash);
+  if (!parsed) return false;
+  saveCfg({ owner: parsed.owner, repo: parsed.repo, token: parsed.token });
+  history.replaceState(null, '', location.pathname + location.search);  // wipe the fragment
+  return true;
+}
+
 // Wrap DB.save so every local change schedules a push.
 const _save = window.DB.save.bind(window.DB);
 window.DB.save = function () { _save(); onLocalChange(); };
@@ -172,6 +227,11 @@ window.Sync = {
   cfg: loadCfg,
   hasPass: () => !!getPass(),
   createInviteLink,
+  submitInvitePassphrase,
 };
 
-startup();
+if (consumeInviteIfPresent()) {
+  showPassphraseBar();
+} else {
+  startup();
+}
