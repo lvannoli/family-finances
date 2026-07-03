@@ -735,7 +735,7 @@ function renderHome() {
   return `
     <div class="hd">
       <h1>Family Finances</h1>
-      <div class="hd-actions"><button class="icon-btn" onclick="App.openModal('add-account')">+</button></div>
+      <div class="hd-actions"><button class="icon-btn" onclick="App.refresh()" aria-label="Refresh and sync">🔄</button></div>
     </div>
     <div class="view">
       <div class="hero">
@@ -752,7 +752,7 @@ function renderAccounts() {
   const accounts = DB.accounts();
   const grouped = {};
   for (const a of accounts) { if (!grouped[a.type]) grouped[a.type] = []; grouped[a.type].push(a); }
-  let html = `<div class="hd"><h1>Accounts</h1><div class="hd-actions"><button class="icon-btn" onclick="App.openModal('add-account')">+</button></div></div><div class="view">`;
+  let html = `<div class="hd"><h1>Accounts</h1><div class="hd-actions"><button class="icon-btn" onclick="App.refresh()" aria-label="Refresh and sync">🔄</button></div></div><div class="view">`;
   if (!accounts.length) {
     html += `<div class="empty"><div class="empty-ic">💳</div><div class="empty-t">No accounts yet</div><div class="empty-d">Add your savings, LISA, and business accounts to get started</div></div>`;
   } else {
@@ -1063,6 +1063,20 @@ const App = {
       const cd = buildTotalChartData();
       if (cd) lineChart('tot-chart', cd.labels, cd.datasets);
     }
+  },
+
+  async refresh() {
+    if (!window.Sync || !window.Sync.cfg().owner || !window.Sync.hasPass()) {
+      toast('Sync not set up — see Settings → Sync');
+      return;
+    }
+    toast('Syncing…');
+    await window.Sync.syncNow();
+    const st = window.Sync.status();
+    toast(st === 'synced' ? 'Synced ✓'
+        : st === 'offline' ? 'Offline — will retry when back online'
+        : st === 'error' ? 'Sync error — check Settings → Sync'
+        : 'Sync complete');
   },
 
   openModal(name) {
