@@ -36,3 +36,59 @@ export function contributionsThisTaxYear(account, txs = [], now = new Date()) {
   if (deposits.length) return Math.round(deposits.reduce((s, t) => s + t.amt, 0) * 100) / 100;
   return Math.round((parseFloat(account.contribTaxYear) || 0) * 100) / 100;
 }
+
+export function monthly(txs) {
+  const m = {};
+  for (const t of txs) {
+    const k = t.date.slice(0, 7);
+    if (!m[k]) m[k] = { net: 0, bal: null, in: 0, out: 0 };
+    m[k].net += t.amt;
+    if (t.amt > 0) m[k].in += t.amt; else m[k].out += Math.abs(t.amt);
+    if (t.bal != null) m[k].bal = t.bal;
+  }
+  return Object.entries(m).sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+export function avgChange(txs, n = 6) {
+  const mo = monthly(txs).slice(-n);
+  if (!mo.length) return 0;
+  return mo.reduce((s, [, m]) => s + m.net, 0) / mo.length;
+}
+
+export function projectAccount({ balance, rate, monthlyDeposit }, txs = [], months = 12, now = new Date()) {
+  const hasRate = rate != null && rate !== '' && !isNaN(parseFloat(rate));
+  const hist = monthly(txs);
+  const mode = hasRate ? 'rate' : (hist.length >= 2 ? 'history' : 'flat');
+  const monthlyRate = hasRate ? parseFloat(rate) / 100 / 12 : 0;
+  const deposit = parseFloat(monthlyDeposit) || 0;
+  const avg = mode === 'history' ? avgChange(txs) : 0;
+
+  let bal = balance;
+  return Array.from({ length: months }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+    let chg;
+    if (mode === 'rate') { chg = bal * monthlyRate + deposit; bal = bal + chg; }
+    else if (mode === 'history') { chg = avg; bal = bal + avg; }
+    else { chg = 0; }
+    return {
+      lbl: d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }),
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      bal: Math.round(bal * 100) / 100,
+      chg: Math.round(chg * 100) / 100,
+    };
+  });
+}
+
+export function projectTotal(entries = [], months = 12, now = new Date()) {
+  const per = entries.map(e => projectAccount(e, e.txs || [], months, now));
+  return Array.from({ length: months }, (_, i) => {
+    const bal = per.reduce((s, p) => s + (p[i]?.bal || 0), 0);
+    const chg = per.reduce((s, p) => s + (p[i]?.chg || 0), 0);
+    return {
+      lbl: per[0]?.[i]?.lbl || '',
+      key: per[0]?.[i]?.key || '',
+      bal: Math.round(bal * 100) / 100,
+      chg: Math.round(chg * 100) / 100,
+    };
+  });
+}
