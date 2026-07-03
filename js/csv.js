@@ -29,6 +29,18 @@ export const CSV = {
     return 'generic';
   },
 
+  formatLabel(raw) {
+    const lines = raw.trim().replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+    let hi = 0;
+    for (let i = 0; i < Math.min(lines.length, 8); i++) {
+      const l = lines[i].toLowerCase();
+      if (l.includes('date') || l.includes('amount') || l.includes('balance')) { hi = i; break; }
+    }
+    const hdr = this.split(lines[hi]).map(h => h.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim());
+    const LABELS = { trading212: 'Trading212', monzo: 'Monzo', lloyds: 'Lloyds', nationwide: 'Nationwide', generic: 'Generic bank CSV' };
+    return LABELS[this.detect(hdr)] || 'Generic bank CSV';
+  },
+
   parseTx(f, h, fmt) {
     const g = (...names) => {
       for (const n of names) {

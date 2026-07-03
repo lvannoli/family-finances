@@ -56,3 +56,9 @@ test('trading212: non-deposit actions are not flagged as contributions', () => {
   assert.equal(txs[0].amt, -500);
   assert.equal(txs[0].contribution, undefined);
 });
+
+test('formatLabel names the detected format', () => {
+  assert.equal(CSV.formatLabel('Action,Time,Notes,ID,Total,Currency (Total)\nDeposit,06/06/2026 12:08,x,1,20000,GBP'), 'Trading212');
+  assert.equal(CSV.formatLabel('Date,Name,Money In,Money Out,Balance\n01/02/2026,Coffee,,3.50,100'), 'Monzo');
+  assert.equal(CSV.formatLabel('Date,Description,Amount,Balance\n04/02/2026,Interest,1.23,91.23'), 'Generic bank CSV');
+});
