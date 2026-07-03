@@ -334,7 +334,7 @@ input[type=file] { display: none; }
     </div>
     <div class="fg">
       <label class="fl">Type</label>
-      <select class="fs" id="f-type">
+      <select class="fs" id="f-type" onchange="App.onTypeChange()">
         <option value="savings">Personal Savings</option>
         <option value="cash_isa">Cash ISA</option>
         <option value="ss_isa">Stocks &amp; Shares ISA</option>
@@ -351,6 +351,18 @@ input[type=file] { display: none; }
     <div class="fg">
       <label class="fl">Current Balance (£)</label>
       <input class="fi" id="f-bal" type="number" placeholder="0.00" step="0.01" min="0">
+    </div>
+    <div class="fg">
+      <label class="fl">Interest / growth rate (% per year) — optional</label>
+      <input class="fi" id="f-rate" type="number" placeholder="e.g. 4.5" step="0.01" min="0">
+    </div>
+    <div class="fg">
+      <label class="fl">Regular monthly deposit (£) — optional</label>
+      <input class="fi" id="f-deposit" type="number" placeholder="0.00" step="0.01" min="0">
+    </div>
+    <div class="fg" id="fg-contrib" style="display:none">
+      <label class="fl">Paid into this ISA/LISA this tax year (£)</label>
+      <input class="fi" id="f-contrib" type="number" placeholder="0.00" step="0.01" min="0">
     </div>
     <button class="btn btn-p" onclick="App.saveAccount()">Add Account</button>
     <button class="btn btn-s" onclick="App.closeModal('add-account')">Cancel</button>
@@ -675,7 +687,7 @@ const FC = {
 /* ═══════════════════════════════════════════
    STATE & HELPERS
 ═══════════════════════════════════════════ */
-const S = { view: 'home', accId: null, pendingTxs: null, charts: {} };
+const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: null };
 
 function toast(msg, ms=2600) {
   const el = document.getElementById('toast');
@@ -1151,23 +1163,76 @@ const App = {
   },
 
   openModal(name) {
+    if (name === 'add-account' && !S.editId) {
+      S.editId = null;
+      document.querySelector('#modal-add-account .mtitle').textContent = 'Add Account';
+      document.querySelector('#modal-add-account button.btn-p').textContent = 'Add Account';
+      ['f-name','f-bank','f-bal','f-rate','f-deposit','f-contrib'].forEach(id => { document.getElementById(id).value = ''; });
+      document.getElementById('f-type').value = 'savings';
+      this.onTypeChange();
+    }
     document.getElementById('modal-' + name).classList.add('open');
   },
   closeModal(name) {
+    if (name === 'add-account') S.editId = null;
     document.getElementById('modal-' + name).classList.remove('open');
   },
 
   // ── Add Account ──────────────────────────
-  saveAccount() {
-    const name = document.getElementById('f-name').value.trim();
+  onTypeChange() {
     const type = document.getElementById('f-type').value;
-    const bank = document.getElementById('f-bank').value.trim();
-    const bal  = parseFloat(document.getElementById('f-bal').value) || 0;
-    if (!name) { alert('Please enter an account name'); return; }
-    DB.addAccount({ name, type, bank, init: bal, bal });
-    this.closeModal('add-account');
-    toast('Account added ✓');
-    this.go(S.view);
+    document.getElementById('fg-contrib').style.display = window.Finance.isaFamily(type) ? '' : 'none';
+  },
+
+  _readAccountForm() {
+    const rateRaw = document.getElementById('f-rate').value.trim();
+    const depRaw = document.getElementById('f-deposit').value.trim();
+    const contribRaw = document.getElementById('f-contrib').value.trim();
+    const type = document.getElementById('f-type').value;
+    return {
+      name: document.getElementById('f-name').value.trim(),
+      type,
+      bank: document.getElementById('f-bank').value.trim(),
+      bal: parseFloat(document.getElementById('f-bal').value) || 0,
+      rate: rateRaw === '' ? undefined : parseFloat(rateRaw),
+      monthlyDeposit: depRaw === '' ? undefined : parseFloat(depRaw),
+      contribTaxYear: (window.Finance.isaFamily(type) && contribRaw !== '') ? parseFloat(contribRaw) : undefined,
+    };
+  },
+
+  saveAccount() {
+    const f = this._readAccountForm();
+    if (!f.name) { alert('Please enter an account name'); return; }
+    if (S.editId) {
+      DB.updateAccount(S.editId, { name: f.name, type: f.type, bank: f.bank, bal: f.bal, rate: f.rate, monthlyDeposit: f.monthlyDeposit, contribTaxYear: f.contribTaxYear });
+      S.editId = null;
+      this.closeModal('add-account');
+      toast('Account updated ✓');
+      this.go('account', { id: DB.accounts().find(a => a.id) ? S.accId : S.view });
+    } else {
+      DB.addAccount({ name: f.name, type: f.type, bank: f.bank, init: f.bal, bal: f.bal, rate: f.rate, monthlyDeposit: f.monthlyDeposit, contribTaxYear: f.contribTaxYear });
+      this.closeModal('add-account');
+      toast('Account added ✓');
+      this.go(S.view);
+    }
+  },
+
+  editAccount(id) {
+    const acc = DB.accounts().find(a => a.id === id);
+    if (!acc) return;
+    S.editId = id;
+    this.closeModal('gen');
+    document.querySelector('#modal-add-account .mtitle').textContent = 'Edit Account';
+    document.querySelector('#modal-add-account button.btn-p').textContent = 'Save Changes';
+    document.getElementById('f-name').value = acc.name || '';
+    document.getElementById('f-type').value = acc.type || 'savings';
+    document.getElementById('f-bank').value = acc.bank || '';
+    document.getElementById('f-bal').value = (acc.bal != null ? acc.bal : '');
+    document.getElementById('f-rate').value = (acc.rate != null ? acc.rate : '');
+    document.getElementById('f-deposit').value = (acc.monthlyDeposit != null ? acc.monthlyDeposit : '');
+    document.getElementById('f-contrib').value = (acc.contribTaxYear != null ? acc.contribTaxYear : '');
+    this.onTypeChange();
+    this.openModal('add-account');
   },
 
   // ── Upload ───────────────────────────────
@@ -1247,6 +1312,9 @@ const App = {
     document.getElementById('gen-body').innerHTML = `
       <div class="mi" onclick="App.closeModal('gen');App.showUpload('${id}')">
         <span class="mi-ic">📂</span><div class="mi-txt">Upload Statement</div>
+      </div>
+      <div class="mi" onclick="App.editAccount('${id}')">
+        <span class="mi-ic">⚙️</span><div class="mi-txt">Edit Account Details</div>
       </div>
       <div class="mi" onclick="App.editBal('${id}')">
         <span class="mi-ic">✏️</span><div class="mi-txt">Update Balance Manually</div>
