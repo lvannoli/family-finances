@@ -436,6 +436,9 @@ const DB = {
     this.save();
   },
 
+  deleteTransaction(id) { const d = this.load(); d.t = d.t.filter(t => t.id !== id); this.save(); },
+  updateTransaction(id, patch) { const d = this.load(); const i = d.t.findIndex(t => t.id === id); if (i >= 0) { Object.assign(d.t[i], patch); this.save(); } },
+
   addTransactions(aid, txs) {
     const d = this.load();
     const existing = new Set(d.t.filter(t => t.aid === aid).map(t => `${t.date}|${t.desc}|${t.amt}`));
@@ -797,7 +800,7 @@ function renderAccount(id) {
   const txHtml = !txs.length
     ? `<div style="text-align:center;padding:20px 0;color:var(--text-2);font-size:14px">Upload a statement to see transactions</div>`
     : txs.slice(0,25).map(tx => `
-        <div class="tx">
+        <div class="tx" onclick="App.txMenu('${tx.id}')" style="cursor:pointer">
           <div class="tx-ic">${tx.amt >= 0 ? '↑' : '↓'}</div>
           <div class="tx-d">
             <div class="tx-name">${escHtml(tx.desc)}</div>
@@ -867,7 +870,8 @@ function renderAccount(id) {
         <div class="cb">
           ${!hasEnoughForForecast
             ? `<div style="color:var(--text-2);font-size:14px">Upload at least 2 months of statements to generate a forecast.</div>`
-            : `<table class="ft"><thead><tr><th>Month</th><th>Balance</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>`}
+            : `<table class="ft"><thead><tr><th>Month</th><th>Balance</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>
+            <div style="font-size:12px;color:var(--text-2);margin-top:10px">Simple estimate from your recent average or set rate — not financial advice. It doesn't predict one-off lump sums.</div>`}
         </div>
       </div>
 
@@ -962,7 +966,8 @@ function renderForecast() {
         <div class="cb">
           ${!hasForecast
             ? `<div style="color:var(--text-2);font-size:14px">Upload statements to see your forecast here.</div>`
-            : `<table class="ft"><thead><tr><th>Month</th><th>Total</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>`}
+            : `<table class="ft"><thead><tr><th>Month</th><th>Total</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>
+            <div style="font-size:12px;color:var(--text-2);margin-top:10px">Simple estimate from your recent average or set rate — not financial advice. It doesn't predict one-off lump sums.</div>`}
         </div>
       </div>
 
@@ -1097,6 +1102,35 @@ const App = {
         : st === 'offline' ? 'Offline — will retry when back online'
         : st === 'error' ? 'Sync error — check Settings → Sync'
         : 'Sync complete');
+  },
+
+  txMenu(id) {
+    const tx = DB.txAll().find(t => t.id === id);
+    if (!tx) return;
+    document.getElementById('gen-title').textContent = 'Transaction';
+    document.getElementById('gen-body').innerHTML = `
+      <label class="fl">Description</label>
+      <input class="fi" id="tx-desc" value="${escHtml(tx.desc)}">
+      <label class="fl" style="margin-top:8px">Amount (£)</label>
+      <input class="fi" id="tx-amt" type="number" step="0.01" value="${tx.amt}">
+      <button class="btn btn-p" id="tx-save" style="margin-top:12px">Save changes</button>
+      <button class="btn" id="tx-del" style="background:var(--danger);color:#fff">Delete transaction</button>
+      <button class="btn btn-s" onclick="App.closeModal('gen')">Cancel</button>`;
+    this.openModal('gen');
+    document.getElementById('tx-save').onclick = () => {
+      const desc = document.getElementById('tx-desc').value.trim();
+      const amt = parseFloat(document.getElementById('tx-amt').value);
+      if (!desc || isNaN(amt)) return;
+      DB.updateTransaction(id, { desc, amt: Math.round(amt*100)/100 });
+      this.closeModal('gen'); toast('Transaction updated ✓'); this.go('account', { id: tx.aid });
+    };
+    document.getElementById('tx-del').onclick = () => {
+      this.snapshot();
+      DB.deleteTransaction(id);
+      this.closeModal('gen');
+      toast('Transaction deleted', 6000, { label: 'Undo', fn: () => this.undoLast() });
+      this.go('account', { id: tx.aid });
+    };
   },
 
   _undo: null,
