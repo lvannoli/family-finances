@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Finances">
@@ -84,7 +84,7 @@ body {
   font-family: inherit;
 }
 .nb-icon { font-size: 22px; line-height: 1.1; }
-.nb-lbl { font-size: 10px; color: var(--text-3); font-weight: 500; }
+.nb-lbl { font-size: 10px; color: var(--text-2); font-weight: 500; }
 .nb.active .nb-lbl { color: var(--primary-mid); }
 .nb-add {
   width: 50px; height: 50px; border-radius: 50%;
@@ -150,7 +150,7 @@ body {
 .ac-bal { font-size: 16px; font-weight: 700; }
 .ac-trend { font-size: 11px; margin-top: 2px; }
 .up { color: var(--success); } .dn { color: var(--danger); }
-.muted { color: var(--text-3); }
+.muted { color: var(--text-2); }
 
 /* type colours */
 .t-savings { background: #d1fae5; color: #065f46; }
@@ -233,7 +233,7 @@ input[type=file] { display: none; }
 .tx-ic { width: 34px; height: 34px; border-radius: 9px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
 .tx-d { flex: 1; min-width: 0; }
 .tx-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tx-date { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.tx-date { font-size: 11px; color: var(--text-2); margin-top: 2px; }
 .tx-amt { font-size: 14px; font-weight: 700; flex-shrink: 0; }
 
 /* ── CHART ───────────────────────────────── */
@@ -242,7 +242,7 @@ input[type=file] { display: none; }
 /* ── LISA ────────────────────────────────── */
 .lisa-card { background: linear-gradient(135deg,#4c1d95,#7c3aed); color: #fff; }
 .lisa-bar-bg { background: rgba(255,255,255,.2); border-radius: 99px; height: 8px; margin: 10px 0 5px; overflow: hidden; }
-.lisa-bar { height: 100%; background: #fff; border-radius: 99px; transition: width .5s; }
+.lisa-bar { height: 100%; width: 100%; background: #fff; border-radius: 99px; transform-origin: left; transition: transform .5s; }
 .lisa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
 .lisa-stat .v { font-size: 18px; font-weight: 800; }
 .lisa-stat .l { font-size: 11px; opacity: .75; margin-top: 2px; }
@@ -295,7 +295,7 @@ input[type=file] { display: none; }
 .pv-row { display: flex; justify-content: space-between; align-items: baseline; }
 .pv-desc { font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
 .pv-amt { font-weight: 700; flex-shrink: 0; }
-.pv-date { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.pv-date { font-size: 11px; color: var(--text-2); margin-top: 2px; }
 
 @media (min-width: 430px) {
   body { box-shadow: 0 0 60px rgba(0,0,0,.12); }
@@ -315,7 +315,7 @@ input[type=file] { display: none; }
     <span class="nb-icon">💳</span>
     <span class="nb-lbl">Accounts</span>
   </button>
-  <button class="nb-add" onclick="App.openModal('add-account')">+</button>
+  <button class="nb-add" onclick="App.openModal('add-account')" aria-label="Add account">+</button>
   <button class="nb" id="n-forecast" onclick="App.go('forecast')">
     <span class="nb-icon">📈</span>
     <span class="nb-lbl">Forecast</span>
@@ -776,7 +776,7 @@ function renderAccount(id) {
   const hasEnoughForForecast = hasRate || monthly.length >= 2;
 
   const txHtml = !txs.length
-    ? `<div style="text-align:center;padding:20px 0;color:var(--text-3);font-size:14px">Upload a statement to see transactions</div>`
+    ? `<div style="text-align:center;padding:20px 0;color:var(--text-2);font-size:14px">Upload a statement to see transactions</div>`
     : txs.slice(0,25).map(tx => `
         <div class="tx">
           <div class="tx-ic">${tx.amt >= 0 ? '↑' : '↓'}</div>
@@ -802,7 +802,7 @@ function renderAccount(id) {
       <div class="card lisa-card">
         <div class="cb">
           <div style="font-size:11px;opacity:.75;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Tax Year ${ls.yr}</div>
-          <div class="lisa-bar-bg"><div class="lisa-bar" style="width:${ls.pct}%"></div></div>
+          <div class="lisa-bar-bg"><div class="lisa-bar" style="transform:scaleX(${ls.pct}/100)"></div></div>
           <div style="font-size:11px;opacity:.65;text-align:right;margin-top:-2px;margin-bottom:4px">${ls.pct}% of £4,000 allowance</div>
           <div class="lisa-grid">
             <div class="lisa-stat"><div class="v">${gbp(ls.contrib)}</div><div class="l">Contributed</div></div>
@@ -816,10 +816,10 @@ function renderAccount(id) {
 
   return `
     <div class="hd" style="background:${t.col}">
-      <button class="back" onclick="App.go('home')">‹ Back</button>
+      <button class="back" onclick="App.go('home')" aria-label="Back">‹ Back</button>
       <div class="hd-actions">
-        <button class="icon-btn" onclick="App.showUpload('${id}')">📂</button>
-        <button class="icon-btn" onclick="App.showAccMenu('${id}')">⋯</button>
+        <button class="icon-btn" onclick="App.showUpload('${id}')" aria-label="Upload statement">📂</button>
+        <button class="icon-btn" onclick="App.showAccMenu('${id}')" aria-label="Account menu">⋯</button>
       </div>
     </div>
     <div class="view">
@@ -854,7 +854,7 @@ function renderAccount(id) {
       <div class="sec-title">Recent Transactions</div>
       <div class="card">
         <div class="cb">${txHtml}</div>
-        ${txs.length > 25 ? `<div style="text-align:center;padding:0 0 12px;font-size:12px;color:var(--text-3)">Showing 25 of ${txs.length} transactions</div>` : ''}
+        ${txs.length > 25 ? `<div style="text-align:center;padding:0 0 12px;font-size:12px;color:var(--text-2)">Showing 25 of ${txs.length} transactions</div>` : ''}
       </div>
 
       <div style="margin-top:16px">
@@ -915,12 +915,12 @@ function renderForecast() {
         <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600">
           <span>Used ${gbp(isa.isaUsed)}</span><span style="color:var(--text-2)">of ${gbp(20000)}</span>
         </div>
-        <div class="lisa-bar-bg" style="margin:6px 0"><div class="lisa-bar" style="width:${isa.isaPct}%"></div></div>
+        <div class="lisa-bar-bg" style="margin:6px 0"><div class="lisa-bar" style="transform:scaleX(${isa.isaPct}/100)"></div></div>
         <div style="font-size:12px;color:var(--text-2);margin-bottom:12px">${gbp(isa.isaRemaining)} remaining · ${isa.isaPct}% used</div>
         <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600">
           <span>LISA ${gbp(isa.lisaUsed)}</span><span style="color:var(--text-2)">of ${gbp(4000)}</span>
         </div>
-        <div class="lisa-bar-bg" style="margin:6px 0"><div class="lisa-bar" style="width:${isa.lisaPct}%"></div></div>
+        <div class="lisa-bar-bg" style="margin:6px 0"><div class="lisa-bar" style="transform:scaleX(${isa.lisaPct}/100)"></div></div>
         <div style="font-size:12px;color:var(--text-2)">${gbp(isa.lisaRemaining)} LISA allowance left · bonus earned ${gbp(isa.lisaBonus)}</div>
       </div>
     </div>`;
@@ -1002,7 +1002,7 @@ function renderSettings() {
         </div>
       </div>
 
-      <div style="text-align:center;margin-top:28px;color:var(--text-3);font-size:11px">
+      <div style="text-align:center;margin-top:28px;color:var(--text-2);font-size:11px">
         Family Finances · Data stored locally on device only
       </div>
     </div>`;
@@ -1203,7 +1203,7 @@ const App = {
                   </div>
                   <div class="pv-date">${fmtDate(t.date)}</div>
                 </div>`).join('')}
-              ${txs.length > 5 ? `<div style="text-align:center;padding:8px 0 0;font-size:12px;color:var(--text-3)">…and ${txs.length - 5} more</div>` : ''}
+              ${txs.length > 5 ? `<div style="text-align:center;padding:8px 0 0;font-size:12px;color:var(--text-2)">…and ${txs.length - 5} more</div>` : ''}
             </div>
           </div>
           <button class="btn btn-p" style="margin-top:12px" onclick="App.commitUpload()">Import ${txs.length} Transactions</button>
