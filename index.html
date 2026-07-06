@@ -114,22 +114,6 @@ body {
 .card + .card { margin-top: 10px; }
 .cb { padding: 16px; }
 
-/* ── HERO BALANCE ────────────────────────── */
-.hero {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%);
-  color: #fff; padding: 22px 18px 18px;
-  border-radius: var(--r); margin-bottom: 16px;
-}
-.hero-lbl { font-size: 11px; opacity: .7; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
-.hero-amt { font-size: 38px; font-weight: 800; margin: 4px 0 16px; letter-spacing: -1px; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip {
-  background: rgba(255,255,255,.15); padding: 5px 11px;
-  border-radius: 20px; font-size: 12px; font-weight: 600;
-  display: flex; align-items: center; gap: 5px;
-}
-.cdot { width: 7px; height: 7px; border-radius: 50%; }
-
 /* ── ACCOUNT CARDS ───────────────────────── */
 .ac {
   background: var(--card); border-radius: var(--r); box-shadow: var(--shadow);
@@ -733,12 +717,6 @@ function renderAccountCard(a) {
 function renderHome() {
   const accounts = DB.accounts();
   const total = accounts.reduce((s,a) => s + DB.balance(a.id), 0);
-  const byType = {};
-  for (const a of accounts) { byType[a.type] = (byType[a.type]||0) + DB.balance(a.id); }
-  const chips = Object.entries(byType).map(([t,v]) => {
-    const tp = ty(t);
-    return `<div class="chip"><div class="cdot" style="background:${tp.col}"></div>${tp.lbl.split(' ').pop()}: ${gbp(v)}</div>`;
-  }).join('');
 
   const cards = accounts.length
     ? accounts.map(renderAccountCard).join('')
@@ -750,10 +728,9 @@ function renderHome() {
       <div class="hd-actions"><button class="icon-btn" onclick="App.refresh()" aria-label="Refresh and sync">🔄</button></div>
     </div>
     <div class="view">
-      <div class="hero">
-        <div class="hero-lbl">Total Savings</div>
-        <div class="hero-amt">${gbp(total)}</div>
-        ${chips ? `<div class="chips">${chips}</div>` : ''}
+      <div style="padding:8px 2px 20px">
+        <div style="font-size:13px;color:var(--text-2)">Total savings</div>
+        <div style="font-size:36px;font-weight:600;letter-spacing:-1px;margin-top:2px">${gbp(total)}</div>
       </div>
       ${accounts.length ? '<div class="sec-title">Your Accounts</div>' : ''}
       ${cards}
