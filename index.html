@@ -132,7 +132,7 @@ body {
 }
 .ac:active { transform: scale(.98); }
 .ac + .ac { margin-top: 10px; }
-.ac-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--circle-fill); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; flex-shrink: 0; }
+.ac-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--type-bg, var(--circle-fill)); color: var(--type-ink, var(--text)); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; flex-shrink: 0; }
 .ac-info { flex: 1; min-width: 0; }
 .ac-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ac-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
@@ -468,6 +468,16 @@ const DB = {
    TYPE CONFIG
 ═══════════════════════════════════════════ */
 const ty = t => window.Finance.typeInfo(t);
+const TYPE_COLORS = {
+  savings:  { bg:'#d1fae5', ink:'#047857' },
+  cash_isa: { bg:'#e0f2fe', ink:'#0369a1' },
+  ss_isa:   { bg:'#fef3c7', ink:'#b45309' },
+  lisa:     { bg:'#ede9fe', ink:'#6d28d9' },
+  ss_lisa:  { bg:'#fce7f3', ink:'#be185d' },
+  business: { bg:'#ccfbf1', ink:'#0f766e' },
+  other:    { bg:'#e2e8f0', ink:'#475569' },
+};
+const typeColor = t => TYPE_COLORS[t] || TYPE_COLORS.other;
 
 /* ═══════════════════════════════════════════
    FORMATTERS
@@ -577,6 +587,7 @@ function buildAccountChartData(accId) {
   const monthly = FC.monthly(txs);
   const curBal = DB.balance(accId);
   const acc = DB.accounts().find(a => a.id === accId);
+  const c = typeColor(acc?.type).ink;
   const proj = window.Finance.projectAccount({ balance: curBal, rate: acc?.rate, monthlyDeposit: acc?.monthlyDeposit }, txs, 6);
 
   // Build historical balance series
@@ -609,13 +620,13 @@ function buildAccountChartData(accId) {
       {
         label: 'Balance',
         data: histData,
-        borderColor: '#2563eb', backgroundColor: '#2563eb1a',
+        borderColor: c, backgroundColor: c + '1a',
         fill: true, tension: 0.4, pointRadius: 3, spanGaps: false
       },
       {
         label: 'Forecast',
         data: forecastData,
-        borderColor: '#2563eb', borderDash: [5,5],
+        borderColor: c, borderDash: [5,5],
         backgroundColor: 'transparent',
         fill: false, tension: 0.4, pointRadius: 3, spanGaps: true
       }
@@ -671,7 +682,7 @@ function renderAccountCard(a) {
     : `<div class="ac-trend muted">Upload statement</div>`;
   return `
     <button class="ac" onclick="App.go('account',{id:'${a.id}'})">
-      <div class="ac-icon">${initial(a.name)}</div>
+      <div class="ac-icon ${t.cls}">${initial(a.name)}</div>
       <div class="ac-info">
         <div class="ac-name">${escHtml(a.name)}</div>
         <div class="ac-sub">${t.lbl}${a.bank ? ' · ' + escHtml(a.bank) : ''}</div>
@@ -781,7 +792,7 @@ function renderAccount(id) {
     </div>
     <div class="view">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-        <div class="ac-icon" style="width:50px;height:50px;font-size:20px">${initial(acc.name)}</div>
+        <div class="ac-icon ${t.cls}" style="width:50px;height:50px;font-size:20px">${initial(acc.name)}</div>
         <div>
           <div style="font-size:22px;font-weight:600;letter-spacing:-.4px">${escHtml(acc.name)}</div>
           <div style="font-size:13px;color:var(--text-2)">${t.lbl}${acc.bank ? ' · ' + escHtml(acc.bank) : ''}</div>
@@ -856,7 +867,7 @@ function renderForecast() {
     return `
       <div class="card" style="margin-bottom:10px">
         <div class="cb" style="display:flex;align-items:center;gap:10px">
-          <div class="ac-icon" style="font-size:16px">${initial(a.name)}</div>
+          <div class="ac-icon ${t.cls}" style="font-size:16px">${initial(a.name)}</div>
           <div style="flex:1;min-width:0">
             <div style="font-weight:600;font-size:15px">${escHtml(a.name)}</div>
             <div style="font-size:12px;color:var(--text-2)">${t.lbl}</div>
@@ -1370,6 +1381,7 @@ window.App = App;
 window.S = S;
 window.toast = toast;
 document.querySelectorAll('[data-ic]').forEach(el => { el.innerHTML = icon(el.dataset.ic, 24); });
+document.head.insertAdjacentHTML('beforeend', '<style>' + Object.keys(TYPE_COLORS).map(k => `.${ty(k).cls}{--type-bg:${TYPE_COLORS[k].bg};--type-ink:${TYPE_COLORS[k].ink}}`).join('') + '</style>');
 document.addEventListener('keydown', e => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target instanceof HTMLElement && e.target.getAttribute('role') === 'button') {
     e.preventDefault(); e.target.click();
