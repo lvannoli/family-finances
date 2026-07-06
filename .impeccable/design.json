@@ -4,37 +4,213 @@
   "title": "Design System: Family Finances",
   "extensions": {
     "colorMeta": {
-      "accent-blue": { "role": "primary", "displayName": "Ledger Blue", "canonical": "#2563eb", "tonalRamp": ["#0a1f52", "#12307e", "#1b42ab", "#2563eb", "#5286f0", "#83aaf5", "#b3ccf9", "#e4edfd"] },
-      "ink":         { "role": "neutral", "displayName": "Ink", "canonical": "#0f172a", "tonalRamp": ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0"] },
-      "ink-2":       { "role": "neutral", "displayName": "Slate", "canonical": "#475569", "tonalRamp": ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#f1f5f9"] },
-      "ink-3":       { "role": "neutral", "displayName": "Mist", "canonical": "#94a3b8", "tonalRamp": ["#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0", "#f1f5f9", "#f8fafc"] },
-      "bg":          { "role": "neutral", "displayName": "Blue-Grey Ground", "canonical": "#f0f4f8", "tonalRamp": ["#334155", "#64748b", "#94a3b8", "#cbd5e1", "#dbe3ec", "#e8eef4", "#f0f4f8", "#f8fafc"] },
-      "card":        { "role": "neutral", "displayName": "Card White", "canonical": "#ffffff", "tonalRamp": ["#cbd5e1", "#dbe3ec", "#e8eef4", "#f0f4f8", "#f5f8fb", "#fafcfe", "#ffffff", "#ffffff"] },
-      "border":      { "role": "neutral", "displayName": "Hairline", "canonical": "#e2e8f0", "tonalRamp": ["#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0", "#eef2f6", "#f1f5f9", "#f8fafc", "#ffffff"] },
-      "circle-fill": { "role": "neutral", "displayName": "Circle Fill", "canonical": "#eef2f6", "tonalRamp": ["#64748b", "#94a3b8", "#cbd5e1", "#dbe3ec", "#e2e8f0", "#eef2f6", "#f5f8fb", "#ffffff"] },
-      "danger":      { "role": "tertiary", "displayName": "Restrained Red", "canonical": "#dc2626", "tonalRamp": ["#450a0a", "#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#ef4444", "#fca5a5", "#fef2f2"] }
+      "accent-blue": {
+        "role": "primary",
+        "displayName": "Ledger Blue",
+        "canonical": "#2563eb",
+        "tonalRamp": [
+          "#0a1f52",
+          "#12307e",
+          "#1b42ab",
+          "#2563eb",
+          "#5286f0",
+          "#83aaf5",
+          "#b3ccf9",
+          "#e4edfd"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#0f172a",
+        "tonalRamp": [
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#475569",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#e2e8f0"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "canonical": "#475569",
+        "tonalRamp": [
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#475569",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#f1f5f9"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Mist",
+        "canonical": "#94a3b8",
+        "tonalRamp": [
+          "#334155",
+          "#475569",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#e2e8f0",
+          "#f1f5f9",
+          "#f8fafc"
+        ]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Blue-Grey Ground",
+        "canonical": "#f0f4f8",
+        "tonalRamp": [
+          "#334155",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#dbe3ec",
+          "#e8eef4",
+          "#f0f4f8",
+          "#f8fafc"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#cbd5e1",
+          "#dbe3ec",
+          "#e8eef4",
+          "#f0f4f8",
+          "#f5f8fb",
+          "#fafcfe",
+          "#ffffff",
+          "#ffffff"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#e2e8f0",
+        "tonalRamp": [
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#e2e8f0",
+          "#eef2f6",
+          "#f1f5f9",
+          "#f8fafc",
+          "#ffffff"
+        ]
+      },
+      "circle-fill": {
+        "role": "neutral",
+        "displayName": "Circle Fill",
+        "canonical": "#eef2f6",
+        "tonalRamp": [
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#dbe3ec",
+          "#e2e8f0",
+          "#eef2f6",
+          "#f5f8fb",
+          "#ffffff"
+        ]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Restrained Red",
+        "canonical": "#dc2626",
+        "tonalRamp": [
+          "#450a0a",
+          "#7f1d1d",
+          "#991b1b",
+          "#b91c1c",
+          "#dc2626",
+          "#ef4444",
+          "#fca5a5",
+          "#fef2f2"
+        ]
+      }
     },
     "typographyMeta": {
-      "display":  { "displayName": "Display", "purpose": "The one big number per screen — total savings, balance, forecast." },
-      "headline": { "displayName": "Headline", "purpose": "Screen and header titles." },
-      "title":    { "displayName": "Title", "purpose": "Empty-state titles and in-card leads." },
-      "body":     { "displayName": "Body", "purpose": "List rows, captions, inputs (16px on inputs to avoid iOS zoom)." },
-      "label":    { "displayName": "Label", "purpose": "Quiet sentence-case section headings and small captions." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "The one big number per screen — total savings, balance, forecast."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Screen and header titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Empty-state titles and in-card leads."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "List rows, captions, inputs (16px on inputs to avoid iOS zoom)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Quiet sentence-case section headings and small captions."
+      }
     },
     "shadows": [
-      { "name": "sheet-lift", "value": "0 4px 16px rgba(0,0,0,0.06)", "purpose": "Bottom-sheet modals and the passphrase bar — the only floating surfaces." },
-      { "name": "nav-separation", "value": "0 -2px 12px rgba(0,0,0,0.07)", "purpose": "Lifts the fixed bottom nav off scrolling content." },
-      { "name": "fab-glow", "value": "0 4px 14px rgba(37,99,235,0.4)", "purpose": "The single blue + add button; the one place colour-glow is allowed." },
-      { "name": "desktop-frame", "value": "0 0 60px rgba(0,0,0,0.12)", "purpose": "Ambient shadow around the centred 430px phone column at >=430px." }
+      {
+        "name": "sheet-lift",
+        "value": "0 4px 16px rgba(0,0,0,0.06)",
+        "purpose": "Bottom-sheet modals and the passphrase bar — the only floating surfaces."
+      },
+      {
+        "name": "nav-separation",
+        "value": "0 -2px 12px rgba(0,0,0,0.07)",
+        "purpose": "Lifts the fixed bottom nav off scrolling content."
+      },
+      {
+        "name": "fab-glow",
+        "value": "0 4px 14px rgba(37,99,235,0.4)",
+        "purpose": "The single blue + add button; the one place colour-glow is allowed."
+      },
+      {
+        "name": "desktop-frame",
+        "value": "0 0 60px rgba(0,0,0,0.12)",
+        "purpose": "Ambient shadow around the centred 430px phone column at >=430px."
+      }
     ],
     "motion": [
-      { "name": "ease-standard", "value": "0.2s ease", "purpose": "Default transition on all interactive elements (buttons, nav, rows, icons)." },
-      { "name": "press", "value": "transform scale(.92-.99)", "purpose": ":active feedback on buttons and tappable circles." },
-      { "name": "sheet-slide", "value": "0.28s cubic-bezier(.32,.72,0,1)", "purpose": "Bottom-sheet entrance." },
-      { "name": "reduced-motion", "value": "transition/animation collapse to 0.001ms", "purpose": "prefers-reduced-motion fallback — instant, no choreography." }
+      {
+        "name": "ease-standard",
+        "value": "0.2s ease",
+        "purpose": "Default transition on all interactive elements (buttons, nav, rows, icons)."
+      },
+      {
+        "name": "press",
+        "value": "transform scale(.92-.99)",
+        "purpose": ":active feedback on buttons and tappable circles."
+      },
+      {
+        "name": "sheet-slide",
+        "value": "0.28s cubic-bezier(.32,.72,0,1)",
+        "purpose": "Bottom-sheet entrance."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "transition/animation collapse to 0.001ms",
+        "purpose": "prefers-reduced-motion fallback — instant, no choreography."
+      }
     ],
     "breakpoints": [
-      { "name": "phone-column", "value": "430px" }
+      {
+        "name": "phone-column",
+        "value": "430px"
+      }
     ]
   },
   "components": [
@@ -44,7 +220,7 @@
       "refersTo": "button-primary",
       "description": "Full-width primary action — the one blue button per view.",
       "html": "<button class=\"ds-btn-primary\">Decrypt &amp; Import</button>",
-      "css": ".ds-btn-primary { display:block; width:100%; padding:14px; border:none; border-radius:12px; background:#2563eb; color:#fff; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif; font-size:16px; font-weight:600; text-align:center; cursor:pointer; transition:opacity .2s ease, transform .2s ease; } .ds-btn-primary:active { opacity:.82; transform:scale(.99); }"
+      "css": ".ds-btn-primary { display:block; width:100%; padding:14px; border:none; border-radius:999px; background:#2563eb; color:#fff; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif; font-size:16px; font-weight:600; text-align:center; cursor:pointer; transition:opacity .2s ease, transform .2s ease; } .ds-btn-primary:active { opacity:.82; transform:scale(.99); }"
     },
     {
       "name": "Secondary Button",
@@ -52,7 +228,7 @@
       "refersTo": "button-secondary",
       "description": "Neutral secondary action on the blue-grey ground.",
       "html": "<button class=\"ds-btn-secondary\">Copy to clipboard</button>",
-      "css": ".ds-btn-secondary { display:block; width:100%; padding:14px; border:none; border-radius:12px; background:#f0f4f8; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif; font-size:16px; font-weight:600; text-align:center; cursor:pointer; transition:opacity .2s ease, transform .2s ease; } .ds-btn-secondary:active { opacity:.82; transform:scale(.99); }"
+      "css": ".ds-btn-secondary { display:block; width:100%; padding:14px; border:none; border-radius:999px; background:#f0f4f8; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif; font-size:16px; font-weight:600; text-align:center; cursor:pointer; transition:opacity .2s ease, transform .2s ease; } .ds-btn-secondary:active { opacity:.82; transform:scale(.99); }"
     },
     {
       "name": "Card",
@@ -68,7 +244,7 @@
       "refersTo": "input",
       "description": "Hairline-bordered field; focus shifts the border to Ledger Blue.",
       "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Account name\">",
-      "css": ".ds-input { width:100%; padding:12px 14px; border:1.5px solid #e2e8f0; border-radius:10px; background:#fff; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif; font-size:16px; outline:none; transition:border-color .2s ease; } .ds-input:focus { border-color:#2563eb; }"
+      "css": ".ds-input { width:100%; padding:12px 14px; border:1.5px solid #e2e8f0; border-radius:14px; background:#fff; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif; font-size:16px; outline:none; transition:border-color .2s ease; } .ds-input:focus { border-color:#2563eb; }"
     },
     {
       "name": "Account Circle",
@@ -88,39 +264,59 @@
     }
   ],
   "narrative": {
-    "northStar": "The Quiet Ledger",
-    "overview": "Family Finances looks like a calm, private book of record — hairline-ruled, written in ink, with a single blue pen reserved for the things that actually need a decision. It is a product surface, not a marketing page, optimised for a 30-second check-in: one big honest number, then the accounts beneath it, and everything denser folded away behind a tap. Depth comes from whitespace and thin rules, not shadows or colour. The palette is near-monochrome on a soft blue-grey ground with exactly one accent — blue #2563eb. Icons are quiet monochrome filled SVG using currentColor; an account is its initial in a neutral grey circle. It rejects gamified fintech, crypto-trading aggression, and the cluttered high-street bank dashboard.",
+    "northStar": "The Soft Ledger",
+    "overview": "Family Finances is a calm, private book of record with a friendlier skin: soft pastels, fully rounded edges, and a colour per kind of money. Still a product surface for a 30-second check-in (one honest number, accounts, density behind a tap), but each account type now carries a gentle pastel identity, gains read green and drops red, and every surface is generously rounded (pill buttons, 20px cards). Colour is soft and functional: pastel backgrounds with a darker AA-legible ink on top. Blue #2563eb is reserved for actions (press/navigate), distinct from the identity palette. Pastel-not-neon and rounded keep it clear of gamified/confetti fintech and crypto/trading neon.",
     "keyCharacteristics": [
-      "One number first; density behind a tap.",
-      "Near-monochrome + a single blue accent used on <=10% of any screen.",
-      "Flat by default — hairline borders and whitespace, not shadows.",
-      "No emoji, no per-type colours; account identity is an initial in a grey circle.",
+      "One honest number first; density behind a tap.",
+      "A pastel colour per account type on the circle and its forecast line.",
+      "Green for gains, red for drops, always with a up/down glyph (not colour-only).",
+      "Everything rounded: pill buttons, 20px cards, 14px fields, 24px sheets, round avatars.",
+      "Blue #2563eb = actions only, distinct from the identity palette.",
       "Mobile-first, capped at a 430px column that centres on desktop."
     ],
     "rules": [
-      { "name": "The One Blue Rule", "body": "Blue #2563eb is the only accent and appears on <=10% of any screen — actions, active state, focus, links. A second accent hue is wrong.", "section": "colors" },
-      { "name": "The No-Casino Rule", "body": "Positive and neutral amounts render in ink, not green. Only negatives get the single restrained red, and the up/down glyph — not colour — is the primary signal.", "section": "colors" },
-      { "name": "The Sentence-Case Rule", "body": "Headings are sentence case at weight 600 — never uppercase, never letter-spaced eyebrows.", "section": "typography" },
-      { "name": "The Weight Ceiling", "body": "700 is the heaviest weight (headers only); everything else is 600 or 400-500. No 800/900.", "section": "typography" },
-      { "name": "The Flat-Ledger Rule", "body": "If separation is needed, reach for a hairline border or more whitespace before a shadow. A card that isn't floating has no shadow.", "section": "elevation" }
+      {
+        "name": "The Identity-vs-Action Rule",
+        "body": "Pastel palette identifies (which account/line); blue acts (what you press). Never use a type pastel for a button or blue as an account identity.",
+        "section": "colors"
+      },
+      {
+        "name": "The Pastel-not-Neon Rule",
+        "body": "Colour lives in soft pastel backgrounds with AA-legible ink on top. No saturated fills behind text, no glow, no gradient.",
+        "section": "colors"
+      },
+      {
+        "name": "The Sentence-Case Rule",
+        "body": "Headings are sentence case at weight 600 - never uppercase, never tracked eyebrows.",
+        "section": "typography"
+      },
+      {
+        "name": "The Weight Ceiling",
+        "body": "700 is the heaviest weight (headers only); no 800/900.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-Ledger Rule",
+        "body": "Reach for a hairline or whitespace before a shadow. A surface that isn't floating has no shadow.",
+        "section": "elevation"
+      }
     ],
     "dos": [
-      "Do lead every screen with one honest number (Display, 30-36px/600), then a hairline-separated list.",
-      "Do keep blue #2563eb to <=10% of a screen — actions, active state, focus, links.",
-      "Do show amount direction with the up/down glyph; positives in ink, red #dc2626 for negatives and destructive actions only.",
-      "Do separate with 1px hairlines (#e2e8f0) and whitespace before considering a shadow.",
-      "Do represent an account as its initial in a 40px #eef2f6 circle, flex-centred.",
-      "Do keep icons as monochrome filled SVG using currentColor; >=44px tap targets; honor prefers-reduced-motion.",
-      "Do fold density (month-by-month tables, full transaction lists) behind a Show all toggle."
+      "Do lead each screen with one honest number, then a hairline-separated list.",
+      "Do give each account type its pastel identity (bg) + AA-legible ink (initial, line).",
+      "Do use green #047857 for gains and red #dc2626 for drops, always with a up/down glyph.",
+      "Do keep blue #2563eb for actions/active/focus only - distinct from the identity palette.",
+      "Do round generously: pill buttons, 20px cards, 14px fields, 24px sheets, round avatars.",
+      "Do keep icons monochrome filled SVG, >=44px tap targets, honour prefers-reduced-motion.",
+      "Do fold density (month-by-month, full lists, per-account lines) behind a tap/toggle."
     ],
     "donts": [
-      "Don't ship playful / gamified fintech cues — no confetti, mascots, streaks, badges, bright gradients, or emoji-as-icon.",
-      "Don't drift toward a crypto / trading app — no neon-on-black, tickers, hype, pervasive red/green, or dark-by-default.",
-      "Don't rebuild the cluttered high-street bank dashboard — no tile soup, upsells, or notification badges.",
-      "Don't reintroduce per-type account colours; the legacy --savings/--lisa/--business/--other/--primary/--primary-light/--success tokens are deprecated and unused.",
-      "Don't add a second accent hue, uppercase letter-spaced eyebrows, or weights above 700.",
-      "Don't put a shadow on a surface that isn't actually floating.",
-      "Don't use border-left/border-right >1px as a coloured accent stripe, or gradient text."
+      "Don't slide into gamified/confetti fintech - no mascots, streaks, badges, saturated fills, gradients, or emoji-as-icon.",
+      "Don't drift toward crypto/trading neon - no neon-on-black, tickers, pervasive high-saturation red/green, dark-by-default.",
+      "Don't rebuild the cluttered high-street bank dashboard - no tile soup, upsells, notification badges.",
+      "Don't blur the two colour languages: no type-pastel on a button, no action-blue as an account identity.",
+      "Don't put saturated colour behind text, add glows/gradients, or use border-left/right >1px as a coloured stripe.",
+      "Don't exceed weight 700 or use uppercase tracked eyebrows."
     ]
   }
 }

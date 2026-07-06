@@ -1,8 +1,10 @@
 ---
 name: Family Finances
-description: A calm, private, local-first UK savings & ISA tracker — the Quiet Ledger.
+description: A calm, private UK savings & ISA tracker — soft, rounded, pastel-per-account.
 colors:
   accent-blue: "#2563eb"
+  up-green: "#047857"
+  danger: "#dc2626"
   ink: "#0f172a"
   ink-2: "#475569"
   ink-3: "#94a3b8"
@@ -10,9 +12,22 @@ colors:
   card: "#ffffff"
   border: "#e2e8f0"
   circle-fill: "#eef2f6"
-  danger: "#dc2626"
-  danger-ink: "#991b1b"
   danger-bg: "#fef2f2"
+  danger-ink: "#991b1b"
+  type-savings-bg: "#d1fae5"
+  type-savings-ink: "#047857"
+  type-cash-isa-bg: "#e0f2fe"
+  type-cash-isa-ink: "#0369a1"
+  type-ss-isa-bg: "#fef3c7"
+  type-ss-isa-ink: "#b45309"
+  type-lisa-bg: "#ede9fe"
+  type-lisa-ink: "#6d28d9"
+  type-ss-lisa-bg: "#fce7f3"
+  type-ss-lisa-ink: "#be185d"
+  type-business-bg: "#ccfbf1"
+  type-business-ink: "#0f766e"
+  type-other-bg: "#e2e8f0"
+  type-other-ink: "#475569"
 typography:
   display:
     fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif"
@@ -30,8 +45,6 @@ typography:
     fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif"
     fontSize: "17px"
     fontWeight: 600
-    lineHeight: 1.3
-    letterSpacing: "normal"
   body:
     fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif"
     fontSize: "15px"
@@ -42,13 +55,12 @@ typography:
     fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif"
     fontSize: "13px"
     fontWeight: 600
-    lineHeight: 1.4
-    letterSpacing: "normal"
 rounded:
-  input: "10px"
-  button: "12px"
-  card: "14px"
-  sheet: "20px"
+  input: "14px"
+  icon-btn: "14px"
+  card: "20px"
+  sheet: "24px"
+  button: "999px"
   circle: "50%"
   pill: "99px"
 spacing:
@@ -63,17 +75,6 @@ components:
     textColor: "{colors.card}"
     rounded: "{rounded.button}"
     padding: "14px"
-    typography: "{typography.body}"
-  button-secondary:
-    backgroundColor: "{colors.bg}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.button}"
-    padding: "14px"
-  button-danger:
-    backgroundColor: "{colors.danger}"
-    textColor: "{colors.card}"
-    rounded: "{rounded.button}"
-    padding: "14px"
   card:
     backgroundColor: "{colors.card}"
     textColor: "{colors.ink}"
@@ -85,8 +86,8 @@ components:
     rounded: "{rounded.input}"
     padding: "12px 14px"
   account-circle:
-    backgroundColor: "{colors.circle-fill}"
-    textColor: "{colors.ink}"
+    backgroundColor: "{colors.type-savings-bg}"
+    textColor: "{colors.type-savings-ink}"
     rounded: "{rounded.circle}"
     size: "40px"
 ---
@@ -95,170 +96,149 @@ components:
 
 ## 1. Overview
 
-**Creative North Star: "The Quiet Ledger"**
+**Creative North Star: "The Soft Ledger"**
 
-Family Finances looks like a calm, private book of record — hairline-ruled, written in
-ink, with a single blue pen reserved for the things that actually need a decision. It
-is a **product** surface (design serves the task), not a marketing page. The whole
-system optimises for a 30-second check-in on a phone: one big honest number, then the
-accounts beneath it, and everything denser than that folded away behind a tap. Depth
-comes from whitespace and thin rules, not from shadows or colour.
+Family Finances is a calm, private book of record that grew a friendlier skin: **soft
+pastels, fully rounded edges, and a colour per kind of money.** It's still a
+**product** surface optimised for a 30-second check-in — one honest number, then the
+accounts, density behind a tap — but where the old look was austere monochrome, each
+account type now carries its own gentle pastel identity, gains read green and drops
+read red, and every surface is generously rounded (pill buttons, 20px cards).
 
-The palette is near-monochrome on a soft blue-grey ground, with exactly one accent —
-blue `#2563eb` — carrying primary actions, the active nav item, and focus. Icons are a
-quiet set of filled monochrome SVG glyphs that take their colour from their
-surroundings (`currentColor`); an account is shown as its initial in a neutral grey
-circle. Type is a single system stack (`-apple-system`) across a tight five-step scale.
-
-This system explicitly rejects the two things `PRODUCT.md` names as anti-references:
-**playful / gamified fintech** (no confetti, mascots, streaks, badges, bright
-gradients, or emoji-as-personality — every emoji icon was deliberately replaced with
-the monochrome SVG set) and **crypto / trading aggression** (no neon-on-black, tickers,
-pervasive red/green, or dark-by-default). It also stays clear of the cluttered
-high-street **bank-app dashboard** (tile soup, upsells, notification badges).
+Colour here is **soft and functional, never loud.** Pastels are backgrounds; a darker
+"ink" of the same hue carries the initials, chart lines, and labels so everything stays
+AA-legible. Blue `#2563eb` is reserved for *actions* (primary buttons, active nav,
+focus) — it is the one thing you press, distinct from the palette that identifies
+accounts. Because the palette is pastel (not neon) and rounded (not slick), it stays
+clear of the two anti-references in `PRODUCT.md`: **gamified/confetti fintech** and
+**crypto/trading neon**.
 
 **Key Characteristics:**
-- One number first; density (month-by-month tables, full transaction lists) behind a tap.
-- Near-monochrome + a single blue accent used on ≤10% of any screen.
-- Flat by default — hairline borders and whitespace do the separating, not shadows.
-- No emoji, no per-type colours; account identity is an initial in a grey circle.
+- One honest number first; density (month-by-month, full transaction lists) behind a tap.
+- A pastel colour per account type, on the initial-circle and its forecast line.
+- Green for gains, red for drops (with ↑/↓ glyphs so meaning isn't colour-only).
+- Everything rounded: pill buttons, 20px cards, 14px fields, 24px sheets, round avatars.
+- Blue `#2563eb` = actions only, kept distinct from the identity palette.
 - Mobile-first, capped at a 430px column that centres on desktop.
 
 ## 2. Colors
 
-A near-monochrome palette on a soft blue-grey ground, disciplined to a single blue accent.
+Soft pastel-per-type identity + one blue action accent + semantic green/red for money.
 
-### Primary
-- **Ledger Blue** (`#2563eb`): The one accent. Primary buttons, the active bottom-nav
-  icon + label, input focus borders, and links. Never decorative — its rarity is the point.
+### Primary (action accent)
+- **Action Blue** (`#2563eb`): primary (pill) buttons, active bottom-nav, input focus,
+  links, the `+` FAB, and the **Total** forecast line. Pressing/navigation only — not identity.
+
+### Account-type palette (pastel bg + ink)
+Each account type gets a pastel background (on its initial-circle) and a darker ink of
+the same hue (initial + that account's forecast line). All pairs pass WCAG AA (≥4.5:1):
+- **Personal Savings** — mint `#d1fae5` / ink `#047857`
+- **Cash ISA** — sky `#e0f2fe` / ink `#0369a1`
+- **Stocks & Shares ISA** — amber `#fef3c7` / ink `#b45309`
+- **Cash LISA** — lilac `#ede9fe` / ink `#6d28d9`
+- **S&S LISA** — pink `#fce7f3` / ink `#be185d`
+- **Business** — teal `#ccfbf1` / ink `#0f766e`
+- **Other** — slate `#e2e8f0` / ink `#475569`
+
+### Semantic (money direction)
+- **Gain green** (`#047857`, token `--up`): positive amounts, `/mo` deltas, positive
+  credits. Darkened from the brighter emerald so it clears AA on white.
+- **Drop red** (`#dc2626`): negative amounts/deltas. Error panels use `#991b1b` ink on `#fef2f2`.
+- Direction is always paired with a `↑`/`↓` glyph — never conveyed by colour alone.
 
 ### Neutral
-- **Ink** (`#0f172a`): Primary text, big balance numbers, account initials.
-- **Slate** (`#475569`): Secondary text — captions, sub-labels, inactive nav, section headings.
-- **Mist** (`#94a3b8`): Tertiary / hint text only.
-- **Blue-Grey Ground** (`#f0f4f8`): The body background and secondary-button fill.
-- **Card White** (`#ffffff`): Cards, header, bottom nav, sheets.
-- **Hairline** (`#e2e8f0`): All borders, row separators, dividers.
-- **Circle Fill** (`#eef2f6`): The neutral grey disc behind an account initial and header icon buttons.
-
-### Danger (used sparingly)
-- **Restrained Red** (`#dc2626`): Destructive actions and negative amounts only. Paired
-  with a `↓` glyph so direction never depends on colour alone. Error panels use a
-  deeper red ink (`#991b1b`) on a pale red wash (`#fef2f2`).
+- **Ink** `#0f172a` (primary text/numbers), **Slate** `#475569` (secondary/captions),
+  **Mist** `#94a3b8` (hints), **Ground** `#f0f4f8` (body bg), **Card** `#ffffff`,
+  **Hairline** `#e2e8f0` (borders/rows), **Circle-fill** `#eef2f6` (neutral fallback avatar).
 
 ### Named Rules
-**The One Blue Rule.** Blue `#2563eb` is the only accent and appears on ≤10% of any
-screen — actions, active state, focus, links. If a second accent hue shows up, it's wrong.
+**The Identity-vs-Action Rule.** The pastel palette *identifies* (which account / which
+line). Blue *acts* (what you press). Never use a type pastel for a button, or blue for an
+account identity — the two languages must not blur.
 
-**The No-Casino Rule.** Positive and neutral amounts render in **ink**, not green.
-Only negatives get the single restrained red, and the `↑`/`↓` glyph — not colour —
-is the primary signal. There is no pervasive green/red.
+**The Pastel-not-Neon Rule.** Colour lives in soft pastel backgrounds with AA-legible ink
+on top. No saturated fills behind text, no glow, no gradient — pastel keeps it calm.
 
 ## 3. Typography
 
-**Display / Body / Label Font:** one system stack — `-apple-system, BlinkMacSystemFont,
-'SF Pro Text', sans-serif`. No pairing, no web fonts.
-
-**Character:** Native, invisible, trustworthy. The system font renders like the OS the
-user already trusts; personality comes from weight, size, and generous spacing — never
-from a decorative face.
+**One family:** `-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif`. No pairing, no web fonts.
+**Character:** native and trustworthy; hierarchy from weight/size/space, not decorative faces.
 
 ### Hierarchy
-- **Display** (600, 30–36px, line-height 1.1, letter-spacing −1px): The one big number —
-  Home "Total savings", account balance, forecast-in-12-months. Tight tracking, weight 600.
-- **Headline** (700, 18px, letter-spacing −.3px): Screen/header titles (`.hd h1`).
-- **Title** (600, 17px): Empty-state titles, in-card leads.
-- **Body** (400–500, 15–16px, line-height 1.5): List rows, captions, inputs (16px on
-  inputs to prevent iOS zoom-on-focus). Letter-spacing −.01em site-wide.
-- **Label** (600, 13px, sentence case): Quiet section headings (`.sec-title`) and
-  small captions (12px); bottom-nav labels are 10px.
+- **Display** (600, 30–36px, −1px tracking): the one big number (Home total, balance, 12-mo forecast).
+- **Headline** (700, 18px): screen/header titles.
+- **Title** (600, 17px): empty-state titles, in-card leads.
+- **Body** (400–500, 15–16px, lh 1.5): rows, captions, inputs (16px on inputs to avoid iOS zoom).
+- **Label** (600, 13px, sentence case): quiet section headings + small captions.
 
 ### Named Rules
-**The Sentence-Case Rule.** Headings are sentence case at weight 600 — never
-uppercase, never letter-spaced eyebrows. Section headings are quiet, not shouty.
-
-**The Weight Ceiling.** 700 is the heaviest weight in the system (headers only);
-everything else is 600 or 400–500. No 800/900.
+**The Sentence-Case Rule.** Headings are sentence case at weight 600 — never uppercase, never tracked eyebrows.
+**The Weight Ceiling.** 700 is the heaviest weight (headers only); no 800/900.
 
 ## 4. Elevation
 
-**Flat by default.** The base `--shadow` token is `none`. Surfaces (cards, list rows)
-sit flat on the ground and are separated by 1px hairline borders (`#e2e8f0`) and
-whitespace. Shadows appear only where an element genuinely floats above the app.
+**Flat by default, now rounded.** Base `--shadow` is `none`; surfaces sit flat on the
+ground, separated by 1px hairlines and whitespace. Corners are generous (20px cards).
+Shadows appear only where something genuinely floats.
 
-### Shadow Vocabulary (limited, purposeful)
-- **Sheet lift** (`box-shadow: 0 4px 16px rgba(0,0,0,.06)`): Bottom-sheet modals and the
-  passphrase bar — the only truly floating surfaces.
-- **Nav separation** (`box-shadow: 0 -2px 12px rgba(0,0,0,.07)`): The fixed bottom nav, to lift it off scrolling content.
-- **FAB glow** (`box-shadow: 0 4px 14px rgba(37,99,235,.4)`): The single blue `+` add button — the one place colour-glow is allowed, because it's the primary create action.
-- **Desktop frame** (`box-shadow: 0 0 60px rgba(0,0,0,.12)` at ≥430px): A soft ambient shadow around the centred phone column on wide screens.
+### Shadow Vocabulary
+- **Sheet lift** `0 4px 16px rgba(0,0,0,.06)` — bottom-sheet modals + passphrase bar.
+- **Nav separation** `0 -2px 12px rgba(0,0,0,.07)` — the fixed bottom nav.
+- **FAB glow** `0 4px 14px rgba(37,99,235,.4)` — the single blue `+` add button.
+- **Desktop frame** `0 0 60px rgba(0,0,0,.12)` — ambient shadow around the centred column at ≥430px.
 
 ### Named Rules
-**The Flat-Ledger Rule.** If separation is needed, reach for a hairline border or more
-whitespace before a shadow. A card that isn't floating has no shadow.
+**The Flat-Ledger Rule.** Reach for a hairline or whitespace before a shadow. A surface that isn't floating has no shadow.
 
 ## 5. Components
 
 ### Buttons
-- **Shape:** Rounded rectangle (12px radius), full-width block, 14px padding, 16px/600 text.
-- **Primary:** Ledger Blue fill, white text (`.btn-p`).
-- **Secondary:** Blue-grey ground fill, ink text (`.btn-s`).
-- **Danger:** Restrained red fill, white text (`.btn-d`).
-- **Hover / Active:** 0.2s ease transition; `:active` drops opacity to .82 and scales to .99. Reduced-motion collapses this to instant.
+- **Shape:** **pill** (`border-radius:999px`), full-width block, 14px padding, 16px/600.
+- **Primary:** Action Blue fill, white text. **Secondary:** ground fill, ink text. **Danger:** red fill, white.
+- **Active:** 0.2s ease; `:active` opacity .82 + scale .99. Reduced-motion → instant. Keyboard focus → visible `:focus-visible` blue ring.
 
 ### Cards / Containers
-- **Corner Style:** 14px radius (`--r`).
-- **Background:** Card White with a 1px Hairline border.
-- **Shadow Strategy:** None (see Elevation — Flat-Ledger Rule). Sheets are the exception.
-- **Internal Padding:** 18px (`.cb`).
-- Prefer hairline-separated rows over stacked cards for lists (transactions, menus).
+- **Corners:** 20px (`--r`). **Background:** white + 1px hairline. **Shadow:** none (Flat-Ledger). **Padding:** 18px.
+- Prefer hairline-separated rows over stacked cards for lists.
 
 ### Inputs / Fields
-- **Style:** 1.5px Hairline border, 10px radius, white fill, 16px text (iOS-zoom-safe).
-- **Focus:** Border shifts to Ledger Blue (`.fi:focus`). No glow.
+- **Style:** 1.5px hairline, 14px radius, white, 16px text (iOS-zoom-safe). **Focus:** border → Action Blue.
 
 ### Navigation (bottom tab bar)
-- **Style:** Fixed white bar, 1px top hairline, 5 slots: Home · Accounts · **[+]** · Forecast · Settings.
-- **Icons:** 24px filled monochrome SVG in Slate; **active tab** icon + label turn Ledger Blue.
-- **Center [+]:** A 50px blue circle FAB (the only saturated surface), white plus, blue glow, nudged up over the bar. Tap targets ≥44px; 0.2s transitions.
+- Fixed white bar, 1px top hairline. Icons: 24px filled monochrome SVG in Slate; **active** = Action Blue.
+- **Center `+`:** 50px blue circle FAB, **centred SVG plus**, blue glow. Tap targets ≥44px.
 
-### Header
-- **Style:** Sticky, Card White, ink title (18px/700), 1px hairline bottom border.
-  Detail screens use the same plain header (no per-type colour). Header actions are
-  44px icon buttons on a Circle-Fill disc.
+### Signature — Account Circle (per-type)
+An account = its uppercased **initial** in a **pastel circle of its type colour** (bg =
+type pastel, initial = type ink), flex-centred, 40px, `border-radius:50%`. No logos/emoji.
+Used on Home, Accounts, detail header, Forecast rows.
 
-### Signature Component — The Account Circle
-An account is represented by its **initial**, uppercased, in ink, centred in a 40px
-neutral grey circle (`#eef2f6`, `border-radius:50%`, flex-centred). No logos, no emoji,
-no per-type colour — identity is the letter. Used on Home, Accounts, detail header, and Forecast rows.
+### Signature — Forecast trend lines (interactive)
+The Forecast chart always shows a **bold blue Total** line. Each account in the "Per
+Account" list is an accessible **toggle** (`role=button`, `aria-pressed`, a colour dot):
+tap it to add/remove that fund's own projected line, drawn in its **type ink** colour.
+Default = total only; selection persists while on the tab and resets when you leave.
 
-### Signature Component — The Passphrase Bar
-A fixed bottom sheet that slides up (0.28s ease) to take the sync passphrase on import:
-title, password field, inline error line, one blue "Decrypt & Import" button. It is the
-one recurring floating surface and carries the Sheet-lift shadow.
+### Signature — Passphrase bar
+Fixed bottom sheet (slides up 0.28s) for the import passphrase: title, field, inline error, one blue "Decrypt & Import" button. Carries the Sheet-lift shadow.
 
 ## 6. Do's and Don'ts
 
 ### Do:
-- **Do** lead every screen with one honest number (Display, 30–36px/600), then a
-  hairline-separated list beneath it.
-- **Do** keep blue `#2563eb` to ≤10% of a screen — actions, active state, focus, links (The One Blue Rule).
-- **Do** show amount direction with the `↑`/`↓` glyph; render positives in ink, reserve
-  red `#dc2626` for negatives and destructive actions only (The No-Casino Rule).
-- **Do** separate with 1px hairlines (`#e2e8f0`) and whitespace before considering a shadow (The Flat-Ledger Rule).
-- **Do** represent an account as its initial in a 40px `#eef2f6` circle, flex-centred.
-- **Do** keep icons as monochrome filled SVG using `currentColor`; ≥44px tap targets; honor `prefers-reduced-motion`.
-- **Do** fold density (month-by-month tables, full transaction lists) behind a "Show all" toggle.
+- **Do** lead each screen with one honest number, then a hairline-separated list.
+- **Do** give each account type its pastel identity (bg) + AA-legible ink (initial, line).
+- **Do** use green `--up #047857` for gains and red `#dc2626` for drops, always with a ↑/↓ glyph (never colour-only).
+- **Do** keep blue `#2563eb` for actions/active/focus only — distinct from the identity palette (Identity-vs-Action Rule).
+- **Do** round generously: pill buttons, 20px cards, 14px fields, 24px sheets, round avatars.
+- **Do** keep icons monochrome filled SVG (`currentColor`), ≥44px tap targets, honour `prefers-reduced-motion`.
+- **Do** fold density (month-by-month, full lists, per-account lines) behind a tap/toggle.
 
 ### Don't:
-- **Don't** ship **playful / gamified fintech** cues — no confetti, mascots, streaks,
-  badges, bright gradients, or emoji-as-icon. (Every emoji was removed for the SVG set; don't reintroduce them.)
-- **Don't** drift toward a **crypto / trading app** — no neon-on-black, tickers, hype,
-  pervasive red/green, or dark-by-default aggression.
-- **Don't** rebuild the cluttered **high-street bank dashboard** — no tile soup, upsells, or notification badges.
-- **Don't** reintroduce per-type account colours. The `:root` still holds legacy
-  `--savings / --lisa / --business / --other / --primary / --primary-light / --success`
-  tokens — these are **deprecated and unused**; account type is conveyed by text label only.
-- **Don't** add a second accent hue, uppercase letter-spaced eyebrows, or weights above 700.
-- **Don't** put a shadow on a surface that isn't actually floating.
-- **Don't** use `border-left`/`border-right` >1px as a coloured accent stripe, or gradient text.
+- **Don't** slide into **gamified/confetti fintech** — no mascots, streaks, badges, bright saturated fills, gradients, or emoji-as-icon. Pastel ≠ playful-loud.
+- **Don't** drift toward **crypto/trading neon** — no neon-on-black, tickers, pervasive high-saturation red/green, dark-by-default.
+- **Don't** rebuild the cluttered **high-street bank dashboard** — no tile soup, upsells, notification badges.
+- **Don't** blur the two colour languages: no type-pastel on a button, no action-blue as an account identity.
+- **Don't** put saturated colour behind text, add glows/gradients, or use `border-left`/`border-right` >1px as a coloured stripe.
+- **Don't** exceed weight 700 or use uppercase tracked eyebrows.
+
+<!-- History: this system began as the austere-monochrome "Quiet Ledger" (one blue accent, no per-type colour). The user chose a warmer, pastel, rounded, colour-per-type direction; the former "One Blue Rule" and "no per-type colours" doctrines are intentionally retired and replaced by the Identity-vs-Action + Pastel-not-Neon rules above. -->
