@@ -792,7 +792,7 @@ function renderAccount(id) {
           <div style="font-size:13px;font-weight:500;color:var(--text-2)">Current balance</div>
           <div style="font-size:34px;font-weight:600;margin:4px 0;letter-spacing:-1px">${gbp(bal)}</div>
           ${balCaption(acc) ? `<div style="font-size:12px;color:var(--text-2);margin-top:2px">${balCaption(acc)}</div>` : ''}
-          ${avg !== 0 ? `<div style="font-size:13px;color:${avg >= 0 ? 'var(--text)' : 'var(--danger)'}">${fmtChg(avg)} avg per month</div>` : ''}
+          ${avg !== 0 ? `<div style="font-size:13px;color:${avg >= 0 ? '#059669' : 'var(--danger)'}">${fmtChg(avg)} avg per month</div>` : ''}
         </div>
         ${txs.length >= 2 ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="acc-chart" role="img" aria-label="Balance history chart"></canvas></div></div>` : ''}
       </div>
@@ -896,7 +896,7 @@ function renderForecast() {
         <div class="cb">
           <div style="font-size:13px;font-weight:500;color:var(--text-2)">Total in 12 months</div>
           <div style="font-size:30px;font-weight:600;margin:4px 0;letter-spacing:-1px">${gbp(projIn12)}</div>
-          <div style="font-size:13px;color:${avg >= 0 ? 'var(--text)' : 'var(--danger)'}">${fmtChg(avg)} avg per month across all accounts</div>
+          <div style="font-size:13px;color:${avg >= 0 ? '#059669' : 'var(--danger)'}">${fmtChg(avg)} avg per month across all accounts</div>
         </div>
         ${hasForecast ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="tot-chart" role="img" aria-label="Projected total balance chart"></canvas></div></div>` : ''}
       </div>
@@ -1236,7 +1236,7 @@ const App = {
                 <div class="pv">
                   <div class="pv-row">
                     <div class="pv-desc">${escHtml(t.desc)}</div>
-                    <div class="pv-amt" style="color:${t.amt >= 0 ? 'var(--text)' : 'var(--danger)'}">${fmtChg(t.amt)}</div>
+                    <div class="pv-amt" style="color:${t.amt >= 0 ? '#059669' : 'var(--danger)'}">${fmtChg(t.amt)}</div>
                   </div>
                   <div class="pv-date">${fmtDate(t.date)}</div>
                 </div>`).join('')}
