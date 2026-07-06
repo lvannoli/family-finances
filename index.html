@@ -309,6 +309,20 @@ input[type=file] { display: none; }
     scroll-behavior: auto !important;
   }
 }
+
+/* ── ONBOARDING ──────────────────────────── */
+.ob { position: fixed; inset: 0; z-index: 400; background: var(--bg); display: flex; flex-direction: column;
+  padding: calc(24px + env(safe-area-inset-top,0)) 24px calc(24px + env(safe-area-inset-bottom,0)); overflow-y: auto; }
+.ob-inner { width: 100%; max-width: 430px; margin: auto; }
+.ob-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 28px; }
+.ob-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background var(--dur) ease, width var(--dur) ease; }
+.ob-dot.on { background: var(--primary-mid); width: 22px; }
+.ob-ic { width: 72px; height: 72px; border-radius: 50%; background: var(--primary-mid); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 22px; }
+.ob-title { font-size: 24px; font-weight: 700; letter-spacing: -.5px; text-align: center; margin-bottom: 12px; color: var(--text); }
+.ob-text { font-size: 15px; line-height: 1.6; color: var(--text-2); text-align: center; margin-bottom: 28px; }
+.ob-warn { background: var(--danger-bg); color: var(--danger-ink); font-size: 13px; line-height: 1.5; border-radius: 14px; padding: 12px 14px; margin-bottom: 16px; }
+.ob-actions { margin-top: 8px; }
+.ob-back { background: none; border: none; color: var(--text-2); font: inherit; font-weight: 600; cursor: pointer; padding: 12px; width: 100%; min-height: 44px; }
 </style>
 </head>
 <body>
@@ -387,6 +401,14 @@ input[type=file] { display: none; }
     <div class="mhandle"></div>
     <div class="mtitle" id="gen-title"></div>
     <div id="gen-body"></div>
+  </div>
+</div>
+
+<!-- ── ONBOARDING (first run) ─────── -->
+<div class="ob" id="onboarding" style="display:none" role="dialog" aria-modal="true" aria-label="Welcome">
+  <div class="ob-inner">
+    <div class="ob-dots" id="ob-dots"></div>
+    <div id="ob-body"></div>
   </div>
 </div>
 
@@ -530,6 +552,12 @@ const FC = {
    STATE & HELPERS
 ═══════════════════════════════════════════ */
 const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: null, txExpanded: false, fcExpanded: false, fcMonthly: false, fcLines: new Set() };
+
+const OB_STEPS = [
+  { icon: 'home',   title: 'Welcome to Family Finances', text: "A private place for your UK savings, ISAs and LISAs. Everything stays on this device — nothing is ever sent to a server." },
+  { icon: 'export', title: 'Share with your partner', text: "Export an encrypted copy of your data and send it by AirDrop, Messages or file. Your partner imports it and enters the passphrase you agree on together. Either of you can share updates — the changes merge automatically." },
+  { icon: 'gear',   title: 'Set your passphrase', text: "You'll use this passphrase to encrypt whatever you share. Share it with your partner separately (say it out loud or over Messages) — it's never inside the file." },
+];
 
 const ICONS = {
   home:   '<path d="M12 3 2 11h2v8a1 1 0 0 0 1 1h4v-6h6v6h4a1 1 0 0 0 1-1v-8h2L12 3Z"/>',
@@ -1146,6 +1174,41 @@ const App = {
     document.getElementById('gen-danger-ok').onclick = () => { this.closeModal('gen'); onConfirm(); };
   },
 
+  // ── Onboarding ────────────────────────────
+  startOnboarding() { this.obStep = 0; document.getElementById('onboarding').style.display = 'flex'; this.obRender(); },
+  obRender() {
+    const s = OB_STEPS[this.obStep];
+    const last = this.obStep === OB_STEPS.length - 1;
+    document.getElementById('ob-dots').innerHTML = OB_STEPS.map((_, i) => `<div class="ob-dot ${i === this.obStep ? 'on' : ''}"></div>`).join('');
+    document.getElementById('ob-body').innerHTML = `
+      <div class="ob-ic">${icon(s.icon, 34)}</div>
+      <div class="ob-title">${s.title}</div>
+      <div class="ob-text">${s.text}</div>
+      ${last ? `
+        <div class="ob-warn"><strong>Important:</strong> if you forget this passphrase, files you've shared can't be decrypted — there's no reset. Write it down somewhere safe.</div>
+        <input id="ob-pass" type="password" autocomplete="new-password" placeholder="Choose a passphrase" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:14px;font-size:16px;margin-bottom:6px" oninput="document.getElementById('ob-go').disabled = this.value.trim().length < 4">
+        <div id="ob-pass-err" style="color:var(--danger);font-size:12px;min-height:16px;margin-bottom:8px"></div>
+        <div class="ob-actions">
+          <button class="btn btn-p" id="ob-go" disabled onclick="App.finishOnboarding()">Get started</button>
+          <button class="ob-back" onclick="App.obBack()">Back</button>
+        </div>`
+      : `
+        <div class="ob-actions">
+          <button class="btn btn-p" onclick="App.obNext()">Continue</button>
+          ${this.obStep > 0 ? `<button class="ob-back" onclick="App.obBack()">Back</button>` : ''}
+        </div>`}`;
+  },
+  obNext() { if (this.obStep < OB_STEPS.length - 1) { this.obStep++; this.obRender(); } },
+  obBack() { if (this.obStep > 0) { this.obStep--; this.obRender(); } },
+  finishOnboarding() {
+    const v = (document.getElementById('ob-pass').value || '').trim();
+    if (v.length < 4) { document.getElementById('ob-pass-err').textContent = 'Enter a passphrase (at least 4 characters).'; return; }
+    window.FileSync.setPass(v);
+    localStorage.setItem('ff_onboarded', '1');
+    document.getElementById('onboarding').style.display = 'none';
+    this.openModal('add-account');
+  },
+
   openModal(name) {
     if (name === 'add-account' && !S.editId) {
       S.editId = null;
@@ -1407,8 +1470,9 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); e.target.click();
   }
 });
-if (window.Finance) App.go('home');
-else window.addEventListener('finance-ready', () => App.go('home'), { once: true });
+function boot() { App.go('home'); if (!localStorage.getItem('ff_onboarded')) App.startOnboarding(); }
+if (window.Finance) boot();
+else window.addEventListener('finance-ready', boot, { once: true });
 </script>
 <div id="pass-bar" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:430px;z-index:200;background:var(--card);border-top:1px solid var(--border);box-shadow:0 -4px 20px rgba(0,0,0,.18);padding:16px calc(16px + env(safe-area-inset-right,0)) calc(16px + env(safe-area-inset-bottom,0)) calc(16px + env(safe-area-inset-left,0))">
   <div style="font-size:16px;font-weight:700;margin-bottom:6px">Enter the passphrase</div>
