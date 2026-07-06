@@ -999,6 +999,7 @@ function renderSettings() {
       <div class="card">
         <div class="cb">
           <div style="font-size:13px;color:var(--text-2);margin-bottom:14px">Share an encrypted copy of your data, or import someone else's. Tell them the passphrase separately — it's never in the file.</div>
+          <button class="btn btn-s" style="margin-bottom:10px" onclick="App.syncGuide()">How does sharing work?</button>
           <button class="btn btn-p" onclick="window.FileSync.shareBundle()">Share data</button>
           <button class="btn btn-s" onclick="App.importPrompt()">Import shared file</button>
           <details class="sync-more"${window.FileSync && window.FileSync.hasPass() ? '' : ' open'}>
@@ -1117,6 +1118,23 @@ const App = {
     if (!text) { toast('Paste the bundle text first'); return; }
     this.closeModal('gen');
     window.FileSync.beginImport(text);
+  },
+
+  syncGuide() {
+    document.getElementById('gen-title').textContent = 'How sharing works';
+    document.getElementById('gen-body').innerHTML = `
+      <div style="font-size:14px;line-height:1.6;color:var(--text-2)">
+        <p style="margin-bottom:12px">Your data lives only on this device. To share it with your partner, you send them an <strong>encrypted copy</strong> — nothing goes through a server.</p>
+        <ol style="margin:0 0 12px 18px;padding:0;display:flex;flex-direction:column;gap:10px">
+          <li>Both of you agree on a <strong>passphrase</strong> (Settings → Sync → Options). Share it out loud or by message — it's never inside the file.</li>
+          <li>Tap <strong>Share data</strong> and send it by AirDrop, Messages, or save the file.</li>
+          <li>Your partner taps <strong>Import shared file</strong>, picks the file (or pastes it), and enters the same passphrase.</li>
+          <li>Changes <strong>merge automatically</strong> — either of you can share updates any time, in either direction.</li>
+        </ol>
+        <p style="color:var(--danger-ink);background:var(--danger-bg);border-radius:14px;padding:10px 12px">If you forget the passphrase, shared files can't be decrypted — there's no reset.</p>
+      </div>
+      <button class="btn btn-p" style="margin-top:14px" onclick="App.closeModal('gen')">Got it</button>`;
+    this.openModal('gen');
   },
 
   toggleTx() { S.txExpanded = !S.txExpanded; this.go('account', { id: S.accId }); },
