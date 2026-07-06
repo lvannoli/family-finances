@@ -750,7 +750,7 @@ function renderHome() {
 
   const cards = accounts.length
     ? accounts.map(renderAccountCard).join('')
-    : `<div class="empty"><div class="empty-ic">🏦</div><div class="empty-t">No accounts yet</div><div class="empty-d">Tap the + button to add your first savings account</div></div>`;
+    : `<div class="empty"><div class="empty-ic" style="display:flex;justify-content:center">${icon('card', 44)}</div><div class="empty-t">No accounts yet</div><div class="empty-d">Tap the + button to add your first savings account</div></div>`;
 
   return `
     <div class="hd">
@@ -1038,7 +1038,7 @@ function renderSettings() {
 function uploadFormHTML() {
   return `
     <div class="upload-zone" id="uz" onclick="document.getElementById('fi').click()">
-      <div class="uz-icon">📄</div>
+      <div class="uz-icon" style="display:flex;justify-content:center">${icon('folder', 38)}</div>
       <div class="uz-txt">Tap to upload bank statement</div>
       <div class="uz-hint">CSV or PDF · Barclays, Monzo, HSBC, Lloyds, Nationwide,<br>Starling, NatWest, Santander and more</div>
     </div>
