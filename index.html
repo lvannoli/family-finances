@@ -928,7 +928,7 @@ function renderSettings() {
           </div>
           <div class="mi" role="button" tabindex="0" onclick="App.importData()">
             <span class="mi-ic">${icon('import', 20)}</span>
-            <div class="mi-txt">Import Data<div class="mi-sub">Restore from a previous backup</div></div>
+            <div class="mi-txt">Restore JSON backup<div class="mi-sub">Restore an unencrypted backup you exported here</div></div>
           </div>
           <div class="mi" role="button" tabindex="0" style="color:var(--danger)" onclick="App.clearData()">
             <span class="mi-ic">${icon('trash', 20)}</span>
@@ -948,7 +948,7 @@ function renderSettings() {
           <button class="btn btn-s" onclick="window.FileSync.shareBundle()">Share data</button>
           <button class="btn btn-s" onclick="window.FileSync.copyBundle()">Copy to clipboard</button>
           <button class="btn btn-s" onclick="window.FileSync.downloadBundle()">Download file</button>
-          <button class="btn btn-s" onclick="App.importPrompt()">Import data</button>
+          <button class="btn btn-s" onclick="App.importPrompt()">Import shared file</button>
         </div>
       </div>
 
@@ -1036,7 +1036,7 @@ const App = {
     this.go('settings');
   },
   importPrompt() {
-    document.getElementById('gen-title').textContent = 'Import data';
+    document.getElementById('gen-title').textContent = 'Import shared file';
     document.getElementById('gen-body').innerHTML = `
       <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">Pick a shared sync file, or paste the bundle text below.</div>
       <input type="file" id="imp-file" accept=".json,.txt,application/json,text/plain" onchange="App.importFile(this.files[0])">
@@ -1149,7 +1149,14 @@ const App = {
 
   saveAccount() {
     const f = this._readAccountForm();
-    if (!f.name) { alert('Please enter an account name'); return; }
+    if (!f.name) {
+      const nameEl = document.getElementById('f-name');
+      let err = document.getElementById('f-name-err');
+      if (!err) { err = document.createElement('div'); err.id = 'f-name-err'; err.style.cssText = 'color:var(--danger);font-size:12px;margin-top:4px'; nameEl.insertAdjacentElement('afterend', err); }
+      err.textContent = 'Enter an account name';
+      nameEl.focus();
+      return;
+    }
     if (S.editId) {
       const id = S.editId;
       DB.updateAccount(id, { name: f.name, type: f.type, bank: f.bank, bal: f.bal, rate: f.rate, monthlyDeposit: f.monthlyDeposit, contribTaxYear: f.contribTaxYear });
