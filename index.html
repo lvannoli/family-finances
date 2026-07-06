@@ -141,6 +141,13 @@ body {
 .ac-trend { font-size: 11px; margin-top: 2px; color: var(--text-2); }
 .up { color: var(--up); } .dn { color: var(--danger); }
 .muted { color: var(--text-2); }
+.t-savings{--type-bg:#d1fae5;--type-ink:#047857}
+.t-cash-isa{--type-bg:#e0f2fe;--type-ink:#0369a1}
+.t-ss-isa{--type-bg:#fef3c7;--type-ink:#b45309}
+.t-lisa{--type-bg:#ede9fe;--type-ink:#6d28d9}
+.t-ss-lisa{--type-bg:#fce7f3;--type-ink:#be185d}
+.t-business{--type-bg:#ccfbf1;--type-ink:#0f766e}
+.t-other{--type-bg:#e2e8f0;--type-ink:#475569}
 
 /* ── MODALS ──────────────────────────────── */
 .overlay {
@@ -1395,7 +1402,6 @@ window.App = App;
 window.S = S;
 window.toast = toast;
 document.querySelectorAll('[data-ic]').forEach(el => { el.innerHTML = icon(el.dataset.ic, 24); });
-document.head.insertAdjacentHTML('beforeend', '<style>' + Object.keys(TYPE_COLORS).map(k => `.${ty(k).cls}{--type-bg:${TYPE_COLORS[k].bg};--type-ink:${TYPE_COLORS[k].ink}}`).join('') + '</style>');
 document.addEventListener('keydown', e => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target instanceof HTMLElement && e.target.getAttribute('role') === 'button') {
     e.preventDefault(); e.target.click();
