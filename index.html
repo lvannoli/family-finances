@@ -138,28 +138,15 @@ body {
 }
 .ac:active { transform: scale(.98); }
 .ac + .ac { margin-top: 10px; }
-.ac-icon {
-  width: 44px; height: 44px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; flex-shrink: 0;
-}
+.ac-icon { width: 40px; height: 40px; border-radius: 50%; background: #eef2f6; color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; flex-shrink: 0; }
 .ac-info { flex: 1; min-width: 0; }
 .ac-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ac-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
 .ac-right { text-align: right; flex-shrink: 0; }
 .ac-bal { font-size: 16px; font-weight: 700; }
 .ac-trend { font-size: 11px; margin-top: 2px; }
-.up { color: var(--success); } .dn { color: var(--danger); }
+.up { color: var(--text); } .dn { color: var(--danger); }
 .muted { color: var(--text-2); }
-
-/* type colours */
-.t-savings { background: #d1fae5; color: #065f46; }
-.t-lisa     { background: #ede9fe; color: #5b21b6; }
-.t-business { background: #cffafe; color: #164e63; }
-.t-other    { background: #f1f5f9; color: #374151; }
-.t-cash-isa { background: #e0f2fe; color: #075985; }
-.t-ss-isa   { background: #fef3c7; color: #92400e; }
-.t-ss-lisa  { background: #fce7f3; color: #9d174d; }
 
 /* ── MODALS ──────────────────────────────── */
 .overlay {
@@ -495,6 +482,7 @@ const fmtShort = s => {
   return new Date(s + 'T12:00:00').toLocaleDateString('en-GB', {month:'short', year:'2-digit'});
 };
 const fmtChg = function(n) { return (n >= 0 ? '+' : '') + gbp(n); };
+function initial(name) { return (String(name || '').trim()[0] || '?').toUpperCase(); }
 function balCaption(acc) {
   if (!acc || !acc.balSource) return '';
   const when = acc.balAt ? new Date(acc.balAt).toLocaleDateString('en-GB', {day:'numeric', month:'short'}) : '';
@@ -728,7 +716,7 @@ function renderAccountCard(a) {
     : `<div class="ac-trend muted">Upload statement</div>`;
   return `
     <button class="ac" onclick="App.go('account',{id:'${a.id}'})">
-      <div class="ac-icon ${t.cls}">${t.icon}</div>
+      <div class="ac-icon">${initial(a.name)}</div>
       <div class="ac-info">
         <div class="ac-name">${escHtml(a.name)}</div>
         <div class="ac-sub">${t.lbl}${a.bank ? ' · ' + escHtml(a.bank) : ''}</div>
@@ -846,7 +834,7 @@ function renderAccount(id) {
     </div>
     <div class="view">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-        <div class="ac-icon ${t.cls}" style="width:50px;height:50px;border-radius:14px;font-size:24px">${t.icon}</div>
+        <div class="ac-icon" style="width:50px;height:50px;font-size:20px">${initial(acc.name)}</div>
         <div>
           <div style="font-size:22px;font-weight:800;letter-spacing:-.4px">${escHtml(acc.name)}</div>
           <div style="font-size:13px;color:var(--text-2)">${t.lbl}${acc.bank ? ' · ' + escHtml(acc.bank) : ''}</div>
@@ -858,7 +846,7 @@ function renderAccount(id) {
           <div style="font-size:13px;font-weight:500;color:var(--text-2)">Current balance</div>
           <div style="font-size:34px;font-weight:800;margin:4px 0;letter-spacing:-1px">${gbp(bal)}</div>
           ${balCaption(acc) ? `<div style="font-size:12px;color:var(--text-2);margin-top:2px">${balCaption(acc)}</div>` : ''}
-          ${avg !== 0 ? `<div style="font-size:13px;color:${avg >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtChg(avg)} avg per month</div>` : ''}
+          ${avg !== 0 ? `<div style="font-size:13px;color:${avg >= 0 ? 'var(--text)' : 'var(--danger)'}">${fmtChg(avg)} avg per month</div>` : ''}
         </div>
         ${txs.length >= 2 ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="acc-chart"></canvas></div></div>` : ''}
       </div>
@@ -915,14 +903,14 @@ function renderForecast() {
     return `
       <div class="card" style="margin-bottom:10px">
         <div class="cb" style="display:flex;align-items:center;gap:10px">
-          <div class="ac-icon ${t.cls}" style="width:40px;height:40px;border-radius:11px;font-size:20px">${t.icon}</div>
+          <div class="ac-icon" style="font-size:16px">${initial(a.name)}</div>
           <div style="flex:1;min-width:0">
             <div style="font-weight:600;font-size:15px">${escHtml(a.name)}</div>
             <div style="font-size:12px;color:var(--text-2)">${t.lbl}</div>
           </div>
           <div style="text-align:right">
             <div style="font-weight:800;font-size:16px">${gbp(aProj12)}</div>
-            <div style="font-size:12px;color:${aAvg >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtChg(aAvg)}/mo</div>
+            <div style="font-size:12px;color:${aAvg >= 0 ? 'var(--text)' : 'var(--danger)'}">${fmtChg(aAvg)}/mo</div>
           </div>
         </div>
       </div>`;
@@ -956,7 +944,7 @@ function renderForecast() {
         <div class="cb">
           <div style="font-size:13px;font-weight:500;color:var(--text-2)">Total in 12 months</div>
           <div style="font-size:30px;font-weight:800;margin:4px 0;letter-spacing:-1px">${gbp(projIn12)}</div>
-          <div style="font-size:13px;color:${avg >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtChg(avg)} avg per month across all accounts</div>
+          <div style="font-size:13px;color:${avg >= 0 ? 'var(--text)' : 'var(--danger)'}">${fmtChg(avg)} avg per month across all accounts</div>
         </div>
         ${hasForecast ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="tot-chart"></canvas></div></div>` : ''}
       </div>
@@ -1274,7 +1262,7 @@ const App = {
                 <div class="pv">
                   <div class="pv-row">
                     <div class="pv-desc">${escHtml(t.desc)}</div>
-                    <div class="pv-amt" style="color:${t.amt >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtChg(t.amt)}</div>
+                    <div class="pv-amt" style="color:${t.amt >= 0 ? 'var(--text)' : 'var(--danger)'}">${fmtChg(t.amt)}</div>
                   </div>
                   <div class="pv-date">${fmtDate(t.date)}</div>
                 </div>`).join('')}
