@@ -91,9 +91,11 @@ body {
   transition: color var(--dur) ease;
   -webkit-tap-highlight-color: transparent;
 }
-.nb-icon { font-size: 22px; line-height: 1.1; }
+.ic { display: block; }
+.nb-icon { color: var(--text-2); display: flex; transition: color var(--dur) ease; }
 .nb-lbl { font-size: 10px; color: var(--text-2); font-weight: 500; }
 .nb.active .nb-lbl { color: var(--primary-mid); }
+.nb.active .nb-icon { color: var(--primary-mid); }
 .nb-add {
   width: 50px; height: 50px; border-radius: 50%;
   background: var(--primary-mid); color: #fff;
@@ -297,20 +299,20 @@ input[type=file] { display: none; }
 
 <nav class="bnav">
   <button class="nb active" id="n-home" onclick="App.go('home')">
-    <span class="nb-icon">🏠</span>
+    <span class="nb-icon" data-ic="home"></span>
     <span class="nb-lbl">Home</span>
   </button>
   <button class="nb" id="n-accounts" onclick="App.go('accounts')">
-    <span class="nb-icon">💳</span>
+    <span class="nb-icon" data-ic="card"></span>
     <span class="nb-lbl">Accounts</span>
   </button>
   <button class="nb-add" onclick="App.openModal('add-account')" aria-label="Add account">+</button>
   <button class="nb" id="n-forecast" onclick="App.go('forecast')">
-    <span class="nb-icon">📈</span>
+    <span class="nb-icon" data-ic="chart"></span>
     <span class="nb-lbl">Forecast</span>
   </button>
   <button class="nb" id="n-settings" onclick="App.go('settings')">
-    <span class="nb-icon">⚙️</span>
+    <span class="nb-icon" data-ic="gear"></span>
     <span class="nb-lbl">Settings</span>
   </button>
 </nav>
@@ -565,6 +567,23 @@ const FC = {
    STATE & HELPERS
 ═══════════════════════════════════════════ */
 const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: null, txExpanded: false, fcExpanded: false, fcMonthly: false };
+
+const ICONS = {
+  home:   '<path d="M12 3 2 11h2v8a1 1 0 0 0 1 1h4v-6h6v6h4a1 1 0 0 0 1-1v-8h2L12 3Z"/>',
+  card:   '<path d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2H3V6Zm18 5v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7h18ZM6 15v2h5v-2H6Z"/>',
+  chart:  '<path d="M4 13h3v7H4v-7Zm6.5-5h3v12h-3V8ZM17 4h3v16h-3V4Z"/>',
+  gear:   '<path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 0 0-.61.22L2.7 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.82 14.5a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.68.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.25.42.5.42h3.84c.25 0 .45-.18.5-.42l.36-2.54c.59-.24 1.12-.56 1.62-.94l2.39.96c.26.12.54.02.68-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/>',
+  folder: '<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z"/>',
+  dots:   '<path d="M5 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/>',
+  export: '<path d="M12 3l4 4h-3v7h-2V7H8l4-4ZM5 14v5h14v-5h2v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6h2Z"/>',
+  import: '<path d="M11 3h2v7h3l-4 4-4-4h3V3ZM5 14v5h14v-5h2v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6h2Z"/>',
+  trash:  '<path d="M9 3h6l1 2h4v2H4V5h4l1-2ZM6 8h12l-1 12a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 8Z"/>',
+  pencil: '<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25ZM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"/>',
+  warning:'<path d="M1 21h22L12 2 1 21Zm12-3h-2v-2h2v2Zm0-4h-2v-4h2v4Z"/>'
+};
+function icon(name, size = 24) {
+  return `<svg class="ic" viewBox="0 0 24 24" width="${size}" height="${size}" fill="currentColor" fill-rule="evenodd" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+}
 
 function toast(msg, ms=2600, action=null) {
   const el = document.getElementById('toast');
@@ -1408,6 +1427,7 @@ window.DB = DB;
 window.App = App;
 window.S = S;
 window.toast = toast;
+document.querySelectorAll('[data-ic]').forEach(el => { el.innerHTML = icon(el.dataset.ic, 24); });
 if (window.Finance) App.go('home');
 else window.addEventListener('finance-ready', () => App.go('home'), { once: true });
 </script>
