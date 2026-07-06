@@ -206,7 +206,7 @@ input[type=file] { display: none; }
 .tx-amt { font-size: 14px; font-weight: 700; flex-shrink: 0; }
 
 /* ── CHART ───────────────────────────────── */
-.chart-wrap { position: relative; height: 190px; padding: 0 0 4px; }
+.chart-wrap { position: relative; height: 140px; padding: 0 0 4px; }
 
 /* ── LISA ────────────────────────────────── */
 .lisa-card { background: linear-gradient(135deg,#4c1d95,#7c3aed); color: #fff; }
@@ -548,7 +548,7 @@ const FC = {
 /* ═══════════════════════════════════════════
    STATE & HELPERS
 ═══════════════════════════════════════════ */
-const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: null };
+const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: null, txExpanded: false, fcExpanded: false };
 
 function toast(msg, ms=2600, action=null) {
   const el = document.getElementById('toast');
@@ -762,7 +762,7 @@ function renderAccount(id) {
 
   const txHtml = !txs.length
     ? `<div style="text-align:center;padding:20px 0;color:var(--text-2);font-size:14px">Upload a statement to see transactions</div>`
-    : txs.slice(0,25).map(tx => `
+    : txs.slice(0, S.txExpanded ? txs.length : 6).map(tx => `
         <div class="tx" onclick="App.txMenu('${tx.id}')" style="cursor:pointer">
           <div class="tx-ic">${tx.amt >= 0 ? '↑' : '↓'}</div>
           <div class="tx-d">
@@ -833,15 +833,21 @@ function renderAccount(id) {
         <div class="cb">
           ${!hasEnoughForForecast
             ? `<div style="color:var(--text-2);font-size:14px">Upload at least 2 months of statements to generate a forecast.</div>`
-            : `<table class="ft"><thead><tr><th>Month</th><th>Balance</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>
-            <div style="font-size:12px;color:var(--text-2);margin-top:10px">Simple estimate from your recent average or set rate — not financial advice. It doesn't predict one-off lump sums.</div>`}
+            : `<div style="display:flex;justify-content:space-between;align-items:baseline">
+                 <div><div style="font-size:12px;color:var(--text-2)">In 12 months</div>
+                      <div style="font-size:22px;font-weight:600">${gbp(proj[11]?.bal ?? bal)}</div></div>
+                 <div style="font-size:13px;color:${(proj[0]?.chg ?? 0) >= 0 ? 'var(--text)' : 'var(--danger)'}">${fmtChg(proj[0]?.chg ?? 0)}/mo</div>
+               </div>
+               <button class="btn btn-s" style="margin-top:10px" onclick="App.toggleForecast()">${S.fcExpanded ? 'Hide month-by-month' : 'Show month-by-month'}</button>
+               ${S.fcExpanded ? `<table class="ft" style="margin-top:10px"><thead><tr><th>Month</th><th>Balance</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>` : ''}
+               <div style="font-size:12px;color:var(--text-2);margin-top:10px">Simple estimate from your recent average or set rate — not financial advice. It doesn't predict one-off lump sums.</div>`}
         </div>
       </div>
 
       <div class="sec-title">Recent Transactions</div>
       <div class="card">
         <div class="cb">${txHtml}</div>
-        ${txs.length > 25 ? `<div style="text-align:center;padding:0 0 12px;font-size:12px;color:var(--text-2)">Showing 25 of ${txs.length} transactions</div>` : ''}
+        ${txs.length > 6 ? `<div style="text-align:center;padding:0 0 12px"><button class="btn btn-s" onclick="App.toggleTx()">${S.txExpanded ? 'Show fewer' : 'Show all ' + txs.length}</button></div>` : ''}
       </div>
 
       <div style="margin-top:16px">
@@ -1022,6 +1028,8 @@ function escHtml(s) {
 ═══════════════════════════════════════════ */
 const App = {
   go(view, params = {}) {
+    const changed = view !== S.view || (params.id && params.id !== S.accId);
+    if (changed) { S.txExpanded = false; S.fcExpanded = false; }
     destroyCharts();
     S.view = view;
     if (params.id) S.accId = params.id;
@@ -1066,6 +1074,9 @@ const App = {
         : st === 'error' ? 'Sync error — check Settings → Sync'
         : 'Sync complete');
   },
+
+  toggleTx() { S.txExpanded = !S.txExpanded; this.go('account', { id: S.accId }); },
+  toggleForecast() { S.fcExpanded = !S.fcExpanded; this.go('account', { id: S.accId }); },
 
   txMenu(id) {
     const tx = DB.txAll().find(t => t.id === id);
