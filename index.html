@@ -221,12 +221,11 @@ input[type=file] { display: none; }
 .chart-wrap { position: relative; height: 140px; padding: 0 0 4px; }
 
 /* ── LISA ────────────────────────────────── */
-.lisa-card { background: linear-gradient(135deg,#4c1d95,#7c3aed); color: #fff; }
-.lisa-bar-bg { background: rgba(255,255,255,.2); border-radius: 99px; height: 8px; margin: 10px 0 5px; overflow: hidden; }
-.lisa-bar { height: 100%; width: 100%; background: #fff; border-radius: 99px; transform-origin: left; transition: transform .5s; }
-.lisa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
-.lisa-stat .v { font-size: 18px; font-weight: 600; }
-.lisa-stat .l { font-size: 11px; opacity: .75; margin-top: 2px; }
+.lisa-bar-bg { background: #eef2f6; border-radius: 99px; height: 8px; margin: 10px 0 5px; overflow: hidden; }
+.lisa-bar { height: 100%; width: 100%; background: var(--primary-mid); border-radius: 99px; transform-origin: left; transition: transform .5s; }
+.lisa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.lisa-stat .v { font-size: 22px; font-weight: 600; letter-spacing: -.3px; }
+.lisa-stat .l { font-size: 11px; color: var(--text-2); margin-top: 3px; }
 
 /* ── FORECAST TABLE ──────────────────────── */
 .ft { width: 100%; border-collapse: collapse; }
@@ -818,11 +817,11 @@ function renderAccount(id) {
     const ls = window.Finance.lisaSummary(acc, txs);
     lisaHtml = `
       <div class="sec-title">LISA Status</div>
-      <div class="card lisa-card">
+      <div class="card">
         <div class="cb">
-          <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.75)">Tax year ${ls.yr}</div>
+          <div style="font-size:13px;font-weight:500;color:var(--text-2)">Tax year ${ls.yr}</div>
           <div class="lisa-bar-bg"><div class="lisa-bar" style="transform:scaleX(${ls.pct/100})"></div></div>
-          <div style="font-size:11px;opacity:.65;text-align:right;margin-top:-2px;margin-bottom:4px">${ls.pct}% of £4,000 allowance</div>
+          <div style="font-size:11px;color:var(--text-2);text-align:right;margin-top:-2px;margin-bottom:4px">${ls.pct}% of £4,000 allowance</div>
           <div class="lisa-grid">
             <div class="lisa-stat"><div class="v">${gbp(ls.contrib)}</div><div class="l">Contributed</div></div>
             <div class="lisa-stat"><div class="v">${gbp(ls.bonus)}</div><div class="l">Bonus earned (25%)</div></div>
