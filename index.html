@@ -17,7 +17,6 @@
   --primary-mid: #2563eb;
   --primary-light: #3b82f6;
   --savings: #059669;
-  --lisa: #7c3aed;
   --business: #0891b2;
   --other: #64748b;
   --danger: #dc2626;
@@ -1115,6 +1114,7 @@ const App = {
       document.querySelector('#modal-add-account .mtitle').textContent = 'Add Account';
       document.querySelector('#modal-add-account button.btn-p').textContent = 'Add Account';
       ['f-name','f-bank','f-bal','f-rate','f-deposit','f-contrib'].forEach(id => { document.getElementById(id).value = ''; });
+      const _fe = document.getElementById('f-name-err'); if (_fe) _fe.textContent = '';
       document.getElementById('f-type').value = 'savings';
       this.onTypeChange();
     }
