@@ -717,7 +717,6 @@ function renderHome() {
   return `
     <div class="hd">
       <h1>Family Finances</h1>
-      <div class="hd-actions"><button class="icon-btn" onclick="App.refresh()" aria-label="Refresh and sync">🔄</button></div>
     </div>
     <div class="view">
       <div style="padding:8px 2px 20px">
@@ -733,7 +732,7 @@ function renderAccounts() {
   const accounts = DB.accounts();
   const grouped = {};
   for (const a of accounts) { if (!grouped[a.type]) grouped[a.type] = []; grouped[a.type].push(a); }
-  let html = `<div class="hd"><h1>Accounts</h1><div class="hd-actions"><button class="icon-btn" onclick="App.refresh()" aria-label="Refresh and sync">🔄</button></div></div><div class="view">`;
+  let html = `<div class="hd"><h1>Accounts</h1></div><div class="view">`;
   if (!accounts.length) {
     html += `<div class="empty"><div class="empty-ic">💳</div><div class="empty-t">No accounts yet</div><div class="empty-d">Add your savings, LISA, and business accounts to get started</div></div>`;
   } else {
@@ -966,19 +965,15 @@ function renderSettings() {
       <div class="sec-title">Sync</div>
       <div class="card">
         <div class="cb">
-          <div id="sync-status" style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--primary-mid)">${window.Sync ? window.Sync.statusLabel() : 'Local only'}</div>
-          <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:2px">GitHub username</label>
-          <input id="sy-owner" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:15px" value="${window.Sync ? escHtml(window.Sync.cfg().owner || '') : ''}" placeholder="lvannoli">
-          <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:2px">Data repo</label>
-          <input id="sy-repo" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:15px" value="${window.Sync ? escHtml(window.Sync.cfg().repo || 'family-finances-data') : 'family-finances-data'}">
-          <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:2px">Access token</label>
-          <input id="sy-token" type="password" autocomplete="off" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:15px" placeholder="${window.Sync && window.Sync.cfg().token ? '•••••••• (saved)' : 'github_pat_…'}">
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">Share your data as an encrypted file, or import someone else's. Tell them the passphrase separately (iMessage or in person) — it's never in the file.</div>
           <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:2px">Passphrase</label>
-          <input id="sy-pass" type="password" autocomplete="off" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:15px" placeholder="${window.Sync && window.Sync.hasPass() ? '•••••••• (saved)' : 'choose a strong passphrase'}">
-          <div style="font-size:11px;color:var(--danger);margin-bottom:12px">If you lose the passphrase your synced data cannot be recovered.</div>
-          <button class="btn btn-p" onclick="window.Sync.saveSettings()">Save &amp; Sync</button>
-          <button class="btn btn-s" onclick="window.Sync.syncNow()">Sync Now</button>
-          ${(window.Sync && window.Sync.cfg().owner && window.Sync.cfg().token) ? `<button class="btn btn-s" onclick="window.Sync.createInviteLink()">Create invite link</button>` : ''}
+          <input id="sy-pass" type="password" autocomplete="off" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:16px" placeholder="${window.FileSync && window.FileSync.hasPass() ? '•••••••• (saved)' : 'choose a strong passphrase'}">
+          <div style="font-size:11px;color:var(--danger);margin-bottom:12px">If you lose the passphrase, shared files can't be decrypted.</div>
+          <button class="btn btn-p" onclick="App.saveSyncPass()">Save passphrase</button>
+          <button class="btn btn-s" onclick="window.FileSync.shareBundle()">Share data</button>
+          <button class="btn btn-s" onclick="window.FileSync.copyBundle()">Copy to clipboard</button>
+          <button class="btn btn-s" onclick="window.FileSync.downloadBundle()">Download file</button>
+          <button class="btn btn-s" onclick="App.importPrompt()">Import data</button>
         </div>
       </div>
 
@@ -1058,18 +1053,34 @@ const App = {
     }
   },
 
-  async refresh() {
-    if (!window.Sync || !window.Sync.cfg().owner || !window.Sync.hasPass()) {
-      toast('Sync not set up — see Settings → Sync');
-      return;
-    }
-    toast('Syncing…');
-    await window.Sync.syncNow();
-    const st = window.Sync.status();
-    toast(st === 'synced' ? 'Synced ✓'
-        : st === 'offline' ? 'Offline — will retry when back online'
-        : st === 'error' ? 'Sync error — check Settings → Sync'
-        : 'Sync complete');
+  saveSyncPass() {
+    const v = document.getElementById('sy-pass').value;
+    if (!v) { toast('Enter a passphrase'); return; }
+    window.FileSync.setPass(v);
+    toast('Passphrase saved ✓');
+    this.go('settings');
+  },
+  importPrompt() {
+    document.getElementById('gen-title').textContent = 'Import data';
+    document.getElementById('gen-body').innerHTML = `
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">Pick a shared sync file, or paste the bundle text below.</div>
+      <input type="file" id="imp-file" accept=".json,.txt,application/json,text/plain" onchange="App.importFile(this.files[0])">
+      <textarea id="imp-text" placeholder="…or paste the bundle here" style="width:100%;height:90px;margin-top:12px;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px"></textarea>
+      <button class="btn btn-p" style="margin-top:10px" onclick="App.importPasted()">Import pasted text</button>
+      <button class="btn btn-s" onclick="App.closeModal('gen')">Cancel</button>`;
+    this.openModal('gen');
+  },
+  async importFile(file) {
+    if (!file) return;
+    const text = await file.text();
+    this.closeModal('gen');
+    window.FileSync.beginImport(text);
+  },
+  importPasted() {
+    const text = document.getElementById('imp-text').value.trim();
+    if (!text) { toast('Paste the bundle text first'); return; }
+    this.closeModal('gen');
+    window.FileSync.beginImport(text);
   },
 
   toggleTx() { S.txExpanded = !S.txExpanded; this.go('account', { id: S.accId }); },
@@ -1386,7 +1397,7 @@ else window.addEventListener('finance-ready', () => App.go('home'), { once: true
   <div style="font-size:12px;color:var(--text-2);margin-bottom:10px">This device is connected to your synced finances. Enter the family passphrase to unlock and sync.</div>
   <input id="pass-bar-input" type="password" autocomplete="off" enterkeyhint="go" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:16px" placeholder="Passphrase">
   <div id="pass-bar-err" style="font-size:12px;color:var(--danger);min-height:16px;margin:6px 0 8px"></div>
-  <button id="pass-bar-btn" class="btn btn-p" onclick="window.Sync.submitInvitePassphrase()">Unlock &amp; Sync</button>
+  <button id="pass-bar-btn" class="btn btn-p" onclick="window.FileSync.submitImportPassphrase()">Unlock &amp; Sync</button>
 </div>
 <script type="module" src="js/file-sync.js"></script>
 <script type="module" src="js/app-sync.js"></script>
