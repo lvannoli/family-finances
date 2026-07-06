@@ -374,7 +374,7 @@ input[type=file] { display: none; }
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="js/vendor/chart.umd.min.js"></script>
 <script type="module">
   import * as Finance from './js/finance.js';
   import { CSV } from './js/csv.js';
@@ -489,71 +489,6 @@ function balCaption(acc) {
   const src = acc.balSource === 'statement' ? 'From statement' : 'Manually set';
   return when ? `${src} · ${when}` : src;
 }
-
-/* ═══════════════════════════════════════════
-   PDF PARSER
-═══════════════════════════════════════════ */
-const PDF = {
-  async parse(file) {
-    if (!window.pdfjsLib) await this._loadLib();
-    const buf = await file.arrayBuffer();
-    const doc = await pdfjsLib.getDocument({data: buf}).promise;
-    let text = '';
-    for (let p = 1; p <= doc.numPages; p++) {
-      const page = await doc.getPage(p);
-      const content = await page.getTextContent();
-      // reconstruct lines by y-position
-      const items = content.items.sort((a,b) => b.transform[5] - a.transform[5] || a.transform[4] - b.transform[4]);
-      let cy = null, cl = '', lines = [];
-      for (const it of items) {
-        const y = Math.round(it.transform[5]);
-        if (cy == null) cy = y;
-        if (Math.abs(y - cy) > 3) { if (cl.trim()) lines.push(cl.trim()); cl = it.str; cy = y; }
-        else cl += ' ' + it.str;
-      }
-      if (cl.trim()) lines.push(cl.trim());
-      text += lines.join('\n') + '\n';
-    }
-    return this.extractTxs(text);
-  },
-
-  _loadLib() {
-    return new Promise((res, rej) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js';
-      s.onload = () => {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-        res();
-      };
-      s.onerror = rej;
-      document.head.appendChild(s);
-    });
-  },
-
-  extractTxs(text) {
-    const lines = text.split('\n');
-    const txs = [];
-    const pats = [
-      /^(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})\s+(.{3,60}?)\s+([-]?\d{1,3}(?:,\d{3})*\.\d{2})\s*([-]?\d{1,3}(?:,\d{3})*\.\d{2})?$/,
-      /^(\d{1,2}\s+[A-Za-z]{3,}\s+\d{4})\s+(.{3,60}?)\s+([-]?\d{1,3}(?:,\d{3})*\.\d{2})$/,
-    ];
-    for (const line of lines) {
-      for (const pat of pats) {
-        const m = line.match(pat);
-        if (!m) continue;
-        const date = window.CSV.parseDate(m[1]);
-        if (!date) continue;
-        const amt = parseFloat(m[3].replace(',',''));
-        if (isNaN(amt)) continue;
-        const tx = { date, desc: m[2].trim(), amt: Math.round(amt*100)/100 };
-        if (m[4]) { const b = parseFloat(m[4].replace(',','')); if (!isNaN(b)) tx.bal = Math.round(b*100)/100; }
-        txs.push(tx);
-        break;
-      }
-    }
-    return txs;
-  }
-};
 
 /* ═══════════════════════════════════════════
    FORECAST
@@ -1040,9 +975,9 @@ function uploadFormHTML() {
     <div class="upload-zone" id="uz" onclick="document.getElementById('fi').click()">
       <div class="uz-icon" style="display:flex;justify-content:center">${icon('folder', 38)}</div>
       <div class="uz-txt">Tap to upload bank statement</div>
-      <div class="uz-hint">CSV or PDF · Barclays, Monzo, HSBC, Lloyds, Nationwide,<br>Starling, NatWest, Santander and more</div>
+      <div class="uz-hint">CSV · Barclays, Monzo, HSBC, Lloyds, Nationwide,<br>Starling, NatWest, Santander and more</div>
     </div>
-    <input type="file" id="fi" accept=".csv,.pdf,text/csv,application/pdf" onchange="App.handleFile(this.files[0])">
+    <input type="file" id="fi" accept=".csv,text/csv" onchange="App.handleFile(this.files[0])">
     <div id="upv"></div>`;
 }
 
@@ -1262,21 +1197,14 @@ const App = {
     const upv = document.getElementById('upv');
     upv.innerHTML = '<div class="loading"><div class="spin"></div>Parsing statement…</div>';
     try {
-      let txs;
-      let fmt = null;
-      if (file.name.toLowerCase().endsWith('.pdf')) {
-        txs = await PDF.parse(file);
-      } else {
-        const text = await file.text();
-        fmt = window.CSV.formatLabel(text);
-        txs = window.CSV.parse(text);
-      }
+      const text = await file.text();
+      const fmt = window.CSV.formatLabel(text);
+      const txs = window.CSV.parse(text);
 
       if (!txs || !txs.length) {
         upv.innerHTML = `<div class="err-box"><span style="display:inline-flex;vertical-align:-3px;margin-right:6px">${icon('warning', 16)}</span>No transactions found in this file.<br><br>
           <strong>Tips:</strong><br>
           • Export CSV directly from your bank's website or app (don't open in Excel first)<br>
-          • For PDF: some bank PDFs are image-based — try CSV export instead<br>
           • Make sure the file isn't empty or password-protected
         </div>`;
         return;
