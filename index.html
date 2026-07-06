@@ -548,7 +548,7 @@ const FC = {
 /* ═══════════════════════════════════════════
    STATE & HELPERS
 ═══════════════════════════════════════════ */
-const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: null, txExpanded: false, fcExpanded: false };
+const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: null, txExpanded: false, fcExpanded: false, fcMonthly: false };
 
 function toast(msg, ms=2600, action=null) {
   const el = document.getElementById('toast');
@@ -585,7 +585,7 @@ function lineChart(canvasId, labels, datasets, color) {
       scales: {
         x: { grid: { display: false }, ticks: { maxTicksLimit: 7, font: { size: 10 }, color: '#94a3b8' } },
         y: {
-          grid: { color: '#f1f5f9' },
+          grid: { color: '#eef2f6' },
           ticks: { callback: v => v >= 1000 ? '£' + (v/1000).toFixed(1) + 'k' : '£' + v, font: { size: 10 }, color: '#94a3b8' }
         }
       }
@@ -629,20 +629,19 @@ function buildAccountChartData(accId) {
   forecastData.push(lastBal);
   forecastData.push(...proj.map(p => p.bal));
 
-  const col = ty(acc?.type).col;
   return {
     labels: allLabels,
     datasets: [
       {
         label: 'Balance',
         data: histData,
-        borderColor: col, backgroundColor: col + '1a',
+        borderColor: '#2563eb', backgroundColor: '#2563eb1a',
         fill: true, tension: 0.4, pointRadius: 3, spanGaps: false
       },
       {
         label: 'Forecast',
         data: forecastData,
-        borderColor: col, borderDash: [5,5],
+        borderColor: '#2563eb', borderDash: [5,5],
         backgroundColor: 'transparent',
         fill: false, tension: 0.4, pointRadius: 3, spanGaps: true
       }
@@ -935,7 +934,8 @@ function renderForecast() {
         <div class="cb">
           ${!hasForecast
             ? `<div style="color:var(--text-2);font-size:14px">Upload statements to see your forecast here.</div>`
-            : `<table class="ft"><thead><tr><th>Month</th><th>Total</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>
+            : `<button class="btn btn-s" onclick="App.toggleFcMonthly()">${S.fcMonthly ? 'Hide month-by-month' : 'Show month-by-month'}</button>
+            ${S.fcMonthly ? `<table class="ft" style="margin-top:10px"><thead><tr><th>Month</th><th>Total</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>` : ''}
             <div style="font-size:12px;color:var(--text-2);margin-top:10px">Simple estimate from your recent average or set rate — not financial advice. It doesn't predict one-off lump sums.</div>`}
         </div>
       </div>
@@ -1029,7 +1029,7 @@ function escHtml(s) {
 const App = {
   go(view, params = {}) {
     const changed = view !== S.view || (params.id && params.id !== S.accId);
-    if (changed) { S.txExpanded = false; S.fcExpanded = false; }
+    if (changed) { S.txExpanded = false; S.fcExpanded = false; S.fcMonthly = false; }
     destroyCharts();
     S.view = view;
     if (params.id) S.accId = params.id;
@@ -1077,6 +1077,7 @@ const App = {
 
   toggleTx() { S.txExpanded = !S.txExpanded; this.go('account', { id: S.accId }); },
   toggleForecast() { S.fcExpanded = !S.fcExpanded; this.go('account', { id: S.accId }); },
+  toggleFcMonthly() { S.fcMonthly = !S.fcMonthly; this.go('forecast'); },
 
   txMenu(id) {
     const tx = DB.txAll().find(t => t.id === id);
