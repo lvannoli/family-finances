@@ -13,14 +13,8 @@
 <title>Family Finances</title>
 <style>
 :root {
-  --primary: #1e3a5f;
   --primary-mid: #2563eb;
-  --primary-light: #3b82f6;
-  --savings: #059669;
-  --business: #0891b2;
-  --other: #64748b;
   --danger: #dc2626;
-  --success: #16a34a;
   --bg: #f0f4f8;
   --card: #ffffff;
   --text: #0f172a;
@@ -29,6 +23,9 @@
   --border: #e2e8f0;
   --shadow: none;
   --shadow-lg: 0 4px 16px rgba(0,0,0,.06);
+  --circle-fill: #eef2f6;
+  --danger-bg: #fef2f2;
+  --danger-ink: #991b1b;
   --dur: .2s;
   --r: 14px;
   --nav: 58px;
@@ -64,7 +61,7 @@ body {
 .icon-btn {
   width: 44px; height: 44px;
   border: none; border-radius: 12px;
-  background: #eef2f6;
+  background: var(--circle-fill);
   color: var(--text);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   transition: background var(--dur) ease, transform var(--dur) ease;
@@ -130,7 +127,7 @@ body {
 }
 .ac:active { transform: scale(.98); }
 .ac + .ac { margin-top: 10px; }
-.ac-icon { width: 40px; height: 40px; border-radius: 50%; background: #eef2f6; color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; flex-shrink: 0; }
+.ac-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--circle-fill); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; flex-shrink: 0; }
 .ac-info { flex: 1; min-width: 0; }
 .ac-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ac-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
@@ -222,7 +219,7 @@ input[type=file] { display: none; }
 .chart-wrap { position: relative; height: 140px; padding: 0 0 4px; }
 
 /* ── LISA ────────────────────────────────── */
-.lisa-bar-bg { background: #eef2f6; border-radius: 99px; height: 8px; margin: 10px 0 5px; overflow: hidden; }
+.lisa-bar-bg { background: var(--circle-fill); border-radius: 99px; height: 8px; margin: 10px 0 5px; overflow: hidden; }
 .lisa-bar { height: 100%; width: 100%; background: var(--primary-mid); border-radius: 99px; transform-origin: left; transition: transform .5s; }
 .lisa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
 .lisa-stat .v { font-size: 22px; font-weight: 600; letter-spacing: -.3px; }
@@ -230,7 +227,7 @@ input[type=file] { display: none; }
 
 /* ── FORECAST TABLE ──────────────────────── */
 .ft { width: 100%; border-collapse: collapse; }
-.ft th { text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-2); padding: 8px 0; border-bottom: 1px solid var(--border); }
+.ft th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-2); padding: 8px 0; border-bottom: 1px solid var(--border); }
 .ft td { padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
 .ft tr:last-child td { border-bottom: none; }
 .ft .fm { font-weight: 500; }
@@ -260,7 +257,8 @@ input[type=file] { display: none; }
   background: #1e293b; color: #fff;
   padding: 11px 18px; border-radius: 10px;
   font-size: 14px; font-weight: 500;
-  z-index: 300; white-space: nowrap;
+  z-index: 300;
+  max-width: calc(100% - 32px); width: max-content; text-align: center; line-height: 1.4;
   opacity: 0; transition: opacity .2s; pointer-events: none;
 }
 .toast.on { opacity: 1; }
@@ -270,7 +268,7 @@ input[type=file] { display: none; }
 .back { background: none; border: none; color: var(--primary-mid); font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 10px 6px 10px 0; min-height: 44px; }
 
 /* ── ERR BOX ─────────────────────────────── */
-.err-box { background: #fef2f2; border-radius: 12px; padding: 14px; color: #991b1b; font-size: 13px; line-height: 1.6; margin-top: 14px; }
+.err-box { background: var(--danger-bg); border-radius: 12px; padding: 14px; color: var(--danger-ink); font-size: 13px; line-height: 1.6; margin-top: 14px; }
 
 /* ── PREVIEW ITEM ────────────────────────── */
 .pv { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
@@ -1031,7 +1029,7 @@ const App = {
     const v = document.getElementById('sy-pass').value;
     if (!v) { toast('Enter a passphrase'); return; }
     window.FileSync.setPass(v);
-    toast('Passphrase saved ✓');
+    toast('Passphrase saved');
     this.go('settings');
   },
   importPrompt() {
@@ -1079,7 +1077,7 @@ const App = {
       const amt = parseFloat(document.getElementById('tx-amt').value);
       if (!desc || isNaN(amt)) return;
       DB.updateTransaction(id, { desc, amt: Math.round(amt*100)/100 });
-      this.closeModal('gen'); toast('Transaction updated ✓'); this.go('account', { id: tx.aid });
+      this.closeModal('gen'); toast('Transaction updated'); this.go('account', { id: tx.aid });
     };
     document.getElementById('tx-del').onclick = () => {
       this.snapshot();
@@ -1095,7 +1093,7 @@ const App = {
   undoLast() {
     if (!this._undo) return;
     DB._d = this._undo; this._undo = null; DB.save();
-    toast('Restored ✓');
+    toast('Restored');
     this.go(S.view || 'home');
   },
   confirmDanger(title, bodyHtml, confirmLabel, onConfirm) {
@@ -1162,12 +1160,12 @@ const App = {
       DB.updateAccount(id, { name: f.name, type: f.type, bank: f.bank, bal: f.bal, rate: f.rate, monthlyDeposit: f.monthlyDeposit, contribTaxYear: f.contribTaxYear });
       S.editId = null;
       this.closeModal('add-account');
-      toast('Account updated ✓');
+      toast('Account updated');
       this.go('account', { id });
     } else {
       DB.addAccount({ name: f.name, type: f.type, bank: f.bank, init: f.bal, bal: f.bal, rate: f.rate, monthlyDeposit: f.monthlyDeposit, contribTaxYear: f.contribTaxYear });
       this.closeModal('add-account');
-      toast('Account added ✓');
+      toast('Account added');
       this.go(S.view);
     }
   },
@@ -1251,7 +1249,7 @@ const App = {
     const { added, skipped } = DB.addTransactions(S.accId, S.pendingTxs);
     S.pendingTxs = null;
     this.closeModal('gen');
-    toast(skipped ? `${added} imported, ${skipped} skipped as duplicates ✓` : `${added} transactions imported ✓`);
+    toast(skipped ? `${added} imported, ${skipped} skipped as duplicates` : `${added} transactions imported`);
     this.go('account', { id: S.accId });
   },
 
@@ -1289,7 +1287,7 @@ const App = {
       const v = parseFloat(document.getElementById('gen-bal-input').value);
       if (isNaN(v)) return;
       DB.updateAccount(id, { bal: v, balSource: 'manual', balAt: new Date().toISOString() });
-      this.closeModal('gen'); toast('Balance updated ✓'); this.go('account', { id });
+      this.closeModal('gen'); toast('Balance updated'); this.go('account', { id });
     };
   },
 
@@ -1317,7 +1315,7 @@ const App = {
     a.download = `family-finances-${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast('Data exported ✓');
+    toast('Data exported');
   },
 
   importData() {
@@ -1338,7 +1336,7 @@ const App = {
           this.exportData();      // auto-backup current data first
           this.snapshot();
           DB._d = d; DB.save();
-          toast('Data imported ✓', 6000, { label: 'Undo', fn: () => this.undoLast() });
+          toast('Data imported', 6000, { label: 'Undo', fn: () => this.undoLast() });
           this.go('home');
         });
     };
