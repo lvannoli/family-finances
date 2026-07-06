@@ -15,6 +15,7 @@
 :root {
   --primary-mid: #2563eb;
   --danger: #dc2626;
+  --up: #047857;
   --bg: #f0f4f8;
   --card: #ffffff;
   --text: #0f172a;
@@ -138,7 +139,7 @@ body {
 .ac-right { text-align: right; flex-shrink: 0; }
 .ac-bal { font-size: 16px; font-weight: 700; }
 .ac-trend { font-size: 11px; margin-top: 2px; }
-.up { color: #059669; } .dn { color: var(--danger); }
+.up { color: var(--up); } .dn { color: var(--danger); }
 .muted { color: var(--text-2); }
 
 /* ── MODALS ──────────────────────────────── */
@@ -792,7 +793,7 @@ function renderAccount(id) {
           <div style="font-size:13px;font-weight:500;color:var(--text-2)">Current balance</div>
           <div style="font-size:34px;font-weight:600;margin:4px 0;letter-spacing:-1px">${gbp(bal)}</div>
           ${balCaption(acc) ? `<div style="font-size:12px;color:var(--text-2);margin-top:2px">${balCaption(acc)}</div>` : ''}
-          ${avg !== 0 ? `<div style="font-size:13px;color:${avg >= 0 ? '#059669' : 'var(--danger)'}">${fmtChg(avg)} avg per month</div>` : ''}
+          ${avg !== 0 ? `<div style="font-size:13px;color:${avg >= 0 ? 'var(--up)' : 'var(--danger)'}">${fmtChg(avg)} avg per month</div>` : ''}
         </div>
         ${txs.length >= 2 ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="acc-chart" role="img" aria-label="Balance history chart"></canvas></div></div>` : ''}
       </div>
@@ -807,7 +808,7 @@ function renderAccount(id) {
             : `<div style="display:flex;justify-content:space-between;align-items:baseline">
                  <div><div style="font-size:12px;color:var(--text-2)">In 12 months</div>
                       <div style="font-size:22px;font-weight:600">${gbp(proj[11]?.bal ?? bal)}</div></div>
-                 <div style="font-size:13px;color:${(proj[0]?.chg ?? 0) >= 0 ? '#059669' : 'var(--danger)'}">${fmtChg(proj[0]?.chg ?? 0)}/mo</div>
+                 <div style="font-size:13px;color:${(proj[0]?.chg ?? 0) >= 0 ? 'var(--up)' : 'var(--danger)'}">${fmtChg(proj[0]?.chg ?? 0)}/mo</div>
                </div>
                <button class="btn btn-s" style="margin-top:10px" onclick="App.toggleForecast()">${S.fcExpanded ? 'Hide month-by-month' : 'Show month-by-month'}</button>
                ${S.fcExpanded ? `<table class="ft" style="margin-top:10px"><thead><tr><th>Month</th><th>Balance</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>` : ''}
@@ -862,7 +863,7 @@ function renderForecast() {
           </div>
           <div style="text-align:right">
             <div style="font-weight:600;font-size:16px">${gbp(aProj12)}</div>
-            <div style="font-size:12px;color:${aAvg >= 0 ? '#059669' : 'var(--danger)'}">${fmtChg(aAvg)}/mo</div>
+            <div style="font-size:12px;color:${aAvg >= 0 ? 'var(--up)' : 'var(--danger)'}">${fmtChg(aAvg)}/mo</div>
           </div>
         </div>
       </div>`;
@@ -896,7 +897,7 @@ function renderForecast() {
         <div class="cb">
           <div style="font-size:13px;font-weight:500;color:var(--text-2)">Total in 12 months</div>
           <div style="font-size:30px;font-weight:600;margin:4px 0;letter-spacing:-1px">${gbp(projIn12)}</div>
-          <div style="font-size:13px;color:${avg >= 0 ? '#059669' : 'var(--danger)'}">${fmtChg(avg)} avg per month across all accounts</div>
+          <div style="font-size:13px;color:${avg >= 0 ? 'var(--up)' : 'var(--danger)'}">${fmtChg(avg)} avg per month across all accounts</div>
         </div>
         ${hasForecast ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="tot-chart" role="img" aria-label="Projected total balance chart"></canvas></div></div>` : ''}
       </div>
@@ -1236,7 +1237,7 @@ const App = {
                 <div class="pv">
                   <div class="pv-row">
                     <div class="pv-desc">${escHtml(t.desc)}</div>
-                    <div class="pv-amt" style="color:${t.amt >= 0 ? '#059669' : 'var(--danger)'}">${fmtChg(t.amt)}</div>
+                    <div class="pv-amt" style="color:${t.amt >= 0 ? 'var(--up)' : 'var(--danger)'}">${fmtChg(t.amt)}</div>
                   </div>
                   <div class="pv-date">${fmtDate(t.date)}</div>
                 </div>`).join('')}
