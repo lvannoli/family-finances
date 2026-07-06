@@ -30,6 +30,7 @@
   --border: #e2e8f0;
   --shadow: none;
   --shadow-lg: 0 4px 16px rgba(0,0,0,.06);
+  --dur: .2s;
   --r: 14px;
   --nav: 58px;
   --sb: env(safe-area-inset-bottom, 0px);
@@ -61,12 +62,15 @@ body {
 .hd h1 { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
 .hd-actions { display: flex; gap: 8px; }
 .icon-btn {
-  width: 34px; height: 34px;
-  border: none; border-radius: 8px;
+  width: 44px; height: 44px;
+  border: none; border-radius: 12px;
   background: #eef2f6;
-  color: var(--text); font-size: 17px;
+  color: var(--text);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background var(--dur) ease, transform var(--dur) ease;
+  -webkit-tap-highlight-color: transparent;
 }
+.icon-btn:active { background: #e2e8f0; transform: scale(.94); }
 
 /* ── BOTTOM NAV ──────────────────────────── */
 .bnav {
@@ -80,9 +84,12 @@ body {
   box-shadow: 0 -2px 12px rgba(0,0,0,.07);
 }
 .nb {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  background: none; border: none; cursor: pointer; padding: 0;
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  min-height: 44px;
+  background: none; border: none; cursor: pointer; padding: 6px 0;
   font-family: inherit;
+  transition: color var(--dur) ease;
+  -webkit-tap-highlight-color: transparent;
 }
 .nb-icon { font-size: 22px; line-height: 1.1; }
 .nb-lbl { font-size: 10px; color: var(--text-2); font-weight: 500; }
@@ -96,7 +103,9 @@ body {
   margin-top: -14px;
   box-shadow: 0 4px 14px rgba(37,99,235,.4);
   font-family: inherit;
+  transition: transform var(--dur) ease, box-shadow var(--dur) ease;
 }
+.nb-add:active { transform: scale(.92); }
 
 /* ── VIEW / LAYOUT ──────────────────────── */
 .view { padding: 16px; }
@@ -176,9 +185,9 @@ body {
   display: block; width: 100%; padding: 14px;
   border-radius: 12px; border: none; cursor: pointer;
   font-size: 16px; font-weight: 600; font-family: inherit;
-  transition: opacity .18s; text-align: center;
+  transition: opacity var(--dur) ease, transform var(--dur) ease; text-align: center;
 }
-.btn:active { opacity: .82; }
+.btn:active { opacity: .82; transform: scale(.99); }
 .btn + .btn { margin-top: 9px; }
 .btn-p { background: var(--primary-mid); color: #fff; }
 .btn-s { background: var(--bg); color: var(--text); }
@@ -225,7 +234,8 @@ input[type=file] { display: none; }
 .ft .fa { font-weight: 700; }
 
 /* ── MENU ────────────────────────────────── */
-.mi { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.mi { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--dur) ease; }
+.mi:active { background: #f8fafc; }
 .mi:last-child { border-bottom: none; }
 .mi-ic { font-size: 20px; width: 34px; text-align: center; }
 .mi-txt { font-size: 15px; }
@@ -254,7 +264,7 @@ input[type=file] { display: none; }
 .toast-action { margin-left: 14px; background: none; border: none; color: #60a5fa; font: inherit; font-weight: 700; cursor: pointer; }
 
 /* ── BACK BTN ────────────────────────────── */
-.back { background: none; border: none; color: var(--primary-mid); font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 2px 0; }
+.back { background: none; border: none; color: var(--primary-mid); font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 10px 6px 10px 0; min-height: 44px; }
 
 /* ── ERR BOX ─────────────────────────────── */
 .err-box { background: #fef2f2; border-radius: 12px; padding: 14px; color: #991b1b; font-size: 13px; line-height: 1.6; margin-top: 14px; }
@@ -269,6 +279,15 @@ input[type=file] { display: none; }
 
 @media (min-width: 430px) {
   body { box-shadow: 0 0 60px rgba(0,0,0,.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 </style>
 </head>
