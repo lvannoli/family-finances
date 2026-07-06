@@ -381,12 +381,13 @@ const DB = {
 
   save() { localStorage.setItem(this.KEY, JSON.stringify(this._d)); },
 
-  accounts() { return this.load().a; },
-  txAll()    { return this.load().t; },
-  txFor(id)  { return this.load().t.filter(t => t.aid === id); },
+  accounts() { return this.load().a.filter(a => !a.deleted); },
+  txAll()    { return this.load().t.filter(t => !t.deleted); },
+  txFor(id)  { return this.load().t.filter(t => t.aid === id && !t.deleted); },
 
   addAccount(acc) {
     acc.id = 'a' + Date.now();
+    acc.updatedAt = new Date().toISOString();
     this.load().a.push(acc);
     this.save();
     return acc;
@@ -395,39 +396,35 @@ const DB = {
   updateAccount(id, patch) {
     const d = this.load();
     const i = d.a.findIndex(a => a.id === id);
-    if (i >= 0) { Object.assign(d.a[i], patch); this.save(); }
+    if (i >= 0) { Object.assign(d.a[i], patch, { updatedAt: new Date().toISOString() }); this.save(); }
   },
 
   deleteAccount(id) {
     const d = this.load();
-    d.a = d.a.filter(a => a.id !== id);
-    d.t = d.t.filter(t => t.aid !== id);
+    const now = new Date().toISOString();
+    for (const a of d.a) if (a.id === id) { a.deleted = true; a.updatedAt = now; }
+    for (const t of d.t) if (t.aid === id) { t.deleted = true; t.updatedAt = now; }
     this.save();
   },
 
-  deleteTransaction(id) { const d = this.load(); d.t = d.t.filter(t => t.id !== id); this.save(); },
-  updateTransaction(id, patch) { const d = this.load(); const i = d.t.findIndex(t => t.id === id); if (i >= 0) { Object.assign(d.t[i], patch); this.save(); } },
+  deleteTransaction(id) { const d = this.load(); const now = new Date().toISOString(); for (const t of d.t) if (t.id === id) { t.deleted = true; t.updatedAt = now; } this.save(); },
+  updateTransaction(id, patch) { const d = this.load(); const i = d.t.findIndex(t => t.id === id); if (i >= 0) { Object.assign(d.t[i], patch, { updatedAt: new Date().toISOString() }); this.save(); } },
 
   addTransactions(aid, txs) {
     const d = this.load();
-    const existing = new Set(d.t.filter(t => t.aid === aid).map(t => `${t.date}|${t.desc}|${t.amt}`));
+    const existing = new Set(d.t.filter(t => t.aid === aid && !t.deleted).map(t => `${t.date}|${t.desc}|${t.amt}`));
     let added = 0, skipped = 0;
+    const now = new Date().toISOString();
     for (const tx of txs) {
       const key = `${tx.date}|${tx.desc}|${tx.amt}`;
       if (!existing.has(key)) {
-        d.t.push({ id: 't' + Date.now() + Math.random().toString(36).slice(2,6), aid, ...tx });
+        d.t.push({ ...tx, id: 't' + Date.now() + Math.random().toString(36).slice(2,6), aid, updatedAt: now });
         existing.add(key);
         added++;
-      } else {
-        skipped++;
-      }
+      } else { skipped++; }
     }
-    // Update balance from latest transaction with balance data
     const withBal = [...txs].reverse().find(t => t.bal !== undefined);
-    if (withBal) {
-      const acc = d.a.find(a => a.id === aid);
-      if (acc) { acc.bal = withBal.bal; acc.balSource = 'statement'; acc.balAt = new Date().toISOString(); }
-    }
+    if (withBal) { const acc = d.a.find(a => a.id === aid); if (acc) { acc.bal = withBal.bal; acc.balSource = 'statement'; acc.balAt = now; acc.updatedAt = now; } }
     this.save();
     return { added, skipped };
   },
@@ -437,7 +434,7 @@ const DB = {
     const acc = d.a.find(a => a.id === id);
     if (!acc) return 0;
     if (acc.bal !== undefined) return acc.bal;
-    const sum = d.t.filter(t => t.aid === id).reduce((s, t) => s + t.amt, 0);
+    const sum = d.t.filter(t => t.aid === id && !t.deleted).reduce((s, t) => s + t.amt, 0);
     return (acc.init || 0) + sum;
   }
 };
