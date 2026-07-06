@@ -27,7 +27,7 @@
   --danger-bg: #fef2f2;
   --danger-ink: #991b1b;
   --dur: .2s;
-  --r: 14px;
+  --r: 20px;
   --nav: 58px;
   --sb: env(safe-area-inset-bottom, 0px);
   --st: env(safe-area-inset-top, 0px);
@@ -60,7 +60,7 @@ body {
 .hd-actions { display: flex; gap: 8px; }
 .icon-btn {
   width: 44px; height: 44px;
-  border: none; border-radius: 12px;
+  border: none; border-radius: 14px;
   background: var(--circle-fill);
   color: var(--text);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -97,7 +97,6 @@ body {
   width: 50px; height: 50px; border-radius: 50%;
   background: var(--primary-mid); color: #fff;
   border: none; cursor: pointer;
-  font-size: 26px; line-height: 1;
   display: flex; align-items: center; justify-content: center;
   margin-top: -14px;
   box-shadow: 0 4px 14px rgba(37,99,235,.4);
@@ -139,7 +138,7 @@ body {
 .ac-right { text-align: right; flex-shrink: 0; }
 .ac-bal { font-size: 16px; font-weight: 700; }
 .ac-trend { font-size: 11px; margin-top: 2px; }
-.up { color: var(--text); } .dn { color: var(--danger); }
+.up { color: #059669; } .dn { color: var(--danger); }
 .muted { color: var(--text-2); }
 
 /* ── MODALS ──────────────────────────────── */
@@ -151,7 +150,7 @@ body {
 }
 .overlay.open { opacity: 1; pointer-events: all; }
 .modal {
-  background: var(--card); border-radius: 20px 20px 0 0;
+  background: var(--card); border-radius: 24px 24px 0 0;
   width: 100%; padding: 0 20px calc(20px + var(--sb));
   transform: translateY(100%);
   transition: transform .28s cubic-bezier(.32,.72,0,1);
@@ -170,7 +169,7 @@ body {
 .fl { display: block; font-size: 12px; font-weight: 700; color: var(--text-2); margin-bottom: 5px; letter-spacing: .3px; }
 .fi {
   width: 100%; padding: 12px 14px;
-  border: 1.5px solid var(--border); border-radius: 10px;
+  border: 1.5px solid var(--border); border-radius: 14px;
   font-size: 15px; font-family: inherit; color: var(--text);
   background: #fff; outline: none; transition: border-color .18s;
 }
@@ -179,7 +178,7 @@ body {
 .fi:focus-visible, .fs:focus-visible { outline: 2px solid var(--primary-mid); outline-offset: 1px; }
 .fs {
   width: 100%; padding: 12px 14px;
-  border: 1.5px solid var(--border); border-radius: 10px;
+  border: 1.5px solid var(--border); border-radius: 14px;
   font-size: 15px; font-family: inherit; color: var(--text);
   background: #fff; outline: none; -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -189,7 +188,7 @@ body {
 /* ── BUTTONS ─────────────────────────────── */
 .btn {
   display: block; width: 100%; padding: 14px;
-  border-radius: 12px; border: none; cursor: pointer;
+  border-radius: 999px; border: none; cursor: pointer;
   font-size: 16px; font-weight: 600; font-family: inherit;
   transition: opacity var(--dur) ease, transform var(--dur) ease; text-align: center;
 }
@@ -201,7 +200,7 @@ body {
 
 /* ── UPLOAD ──────────────────────────────── */
 .upload-zone {
-  border: 2px dashed var(--border); border-radius: 12px;
+  border: 2px dashed var(--border); border-radius: 16px;
   padding: 28px 20px; text-align: center; cursor: pointer;
   background: #f8fafc; transition: border-color .18s, background .18s;
 }
@@ -214,7 +213,7 @@ input[type=file] { display: none; }
 /* ── TRANSACTIONS ────────────────────────── */
 .tx { display: flex; align-items: center; gap: 11px; padding: 13px 0; border-bottom: 1px solid var(--border); }
 .tx:last-child { border-bottom: none; }
-.tx-ic { width: 34px; height: 34px; border-radius: 9px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.tx-ic { width: 34px; height: 34px; border-radius: 12px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
 .tx-d { flex: 1; min-width: 0; }
 .tx-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tx-date { font-size: 11px; color: var(--text-2); margin-top: 2px; }
@@ -260,7 +259,7 @@ input[type=file] { display: none; }
   position: fixed; bottom: calc(var(--nav) + var(--sb) + 14px);
   left: 50%; transform: translateX(-50%);
   background: #1e293b; color: #fff;
-  padding: 11px 18px; border-radius: 10px;
+  padding: 11px 18px; border-radius: 14px;
   font-size: 14px; font-weight: 500;
   z-index: 300;
   max-width: calc(100% - 32px); width: max-content; text-align: center; line-height: 1.4;
@@ -273,7 +272,7 @@ input[type=file] { display: none; }
 .back { background: none; border: none; color: var(--primary-mid); font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 3px; padding: 10px 6px 10px 0; min-height: 44px; }
 
 /* ── ERR BOX ─────────────────────────────── */
-.err-box { background: var(--danger-bg); border-radius: 12px; padding: 14px; color: var(--danger-ink); font-size: 13px; line-height: 1.6; margin-top: 14px; }
+.err-box { background: var(--danger-bg); border-radius: 16px; padding: 14px; color: var(--danger-ink); font-size: 13px; line-height: 1.6; margin-top: 14px; }
 
 /* ── PREVIEW ITEM ────────────────────────── */
 .pv { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
@@ -310,7 +309,7 @@ input[type=file] { display: none; }
     <span class="nb-icon" data-ic="card"></span>
     <span class="nb-lbl">Accounts</span>
   </button>
-  <button class="nb-add" onclick="App.openModal('add-account')" aria-label="Add account">+</button>
+  <button class="nb-add" onclick="App.openModal('add-account')" aria-label="Add account"><svg class="ic" viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z"/></svg></button>
   <button class="nb" id="n-forecast" onclick="App.go('forecast')">
     <span class="nb-icon" data-ic="chart"></span>
     <span class="nb-lbl">Forecast</span>
@@ -808,7 +807,7 @@ function renderAccount(id) {
             : `<div style="display:flex;justify-content:space-between;align-items:baseline">
                  <div><div style="font-size:12px;color:var(--text-2)">In 12 months</div>
                       <div style="font-size:22px;font-weight:600">${gbp(proj[11]?.bal ?? bal)}</div></div>
-                 <div style="font-size:13px;color:${(proj[0]?.chg ?? 0) >= 0 ? 'var(--text)' : 'var(--danger)'}">${fmtChg(proj[0]?.chg ?? 0)}/mo</div>
+                 <div style="font-size:13px;color:${(proj[0]?.chg ?? 0) >= 0 ? '#059669' : 'var(--danger)'}">${fmtChg(proj[0]?.chg ?? 0)}/mo</div>
                </div>
                <button class="btn btn-s" style="margin-top:10px" onclick="App.toggleForecast()">${S.fcExpanded ? 'Hide month-by-month' : 'Show month-by-month'}</button>
                ${S.fcExpanded ? `<table class="ft" style="margin-top:10px"><thead><tr><th>Month</th><th>Balance</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>` : ''}
@@ -863,7 +862,7 @@ function renderForecast() {
           </div>
           <div style="text-align:right">
             <div style="font-weight:600;font-size:16px">${gbp(aProj12)}</div>
-            <div style="font-size:12px;color:${aAvg >= 0 ? 'var(--text)' : 'var(--danger)'}">${fmtChg(aAvg)}/mo</div>
+            <div style="font-size:12px;color:${aAvg >= 0 ? '#059669' : 'var(--danger)'}">${fmtChg(aAvg)}/mo</div>
           </div>
         </div>
       </div>`;
