@@ -297,7 +297,7 @@ input[type=file] { display: none; }
 </head>
 <body>
 
-<div id="app"></div>
+<div id="app" role="main"></div>
 
 <nav class="bnav">
   <button class="nb active" id="n-home" onclick="App.go('home')">
@@ -325,11 +325,11 @@ input[type=file] { display: none; }
     <div class="mhandle"></div>
     <div class="mtitle">Add Account</div>
     <div class="fg">
-      <label class="fl">Account Name</label>
+      <label class="fl" for="f-name">Account Name</label>
       <input class="fi" id="f-name" type="text" placeholder="e.g. Joint ISA, Leo's LISA…">
     </div>
     <div class="fg">
-      <label class="fl">Type</label>
+      <label class="fl" for="f-type">Type</label>
       <select class="fs" id="f-type" onchange="App.onTypeChange()">
         <option value="savings">Personal Savings</option>
         <option value="cash_isa">Cash ISA</option>
@@ -341,23 +341,23 @@ input[type=file] { display: none; }
       </select>
     </div>
     <div class="fg">
-      <label class="fl">Bank / Provider</label>
+      <label class="fl" for="f-bank">Bank / Provider</label>
       <input class="fi" id="f-bank" type="text" placeholder="e.g. Barclays, Monzo, Nationwide…">
     </div>
     <div class="fg">
-      <label class="fl">Current Balance (£)</label>
+      <label class="fl" for="f-bal">Current Balance (£)</label>
       <input class="fi" id="f-bal" type="number" placeholder="0.00" step="0.01" min="0">
     </div>
     <div class="fg">
-      <label class="fl">Interest / growth rate (% per year) — optional</label>
+      <label class="fl" for="f-rate">Interest / growth rate (% per year) — optional</label>
       <input class="fi" id="f-rate" type="number" placeholder="e.g. 4.5" step="0.01" min="0">
     </div>
     <div class="fg">
-      <label class="fl">Regular monthly deposit (£) — optional</label>
+      <label class="fl" for="f-deposit">Regular monthly deposit (£) — optional</label>
       <input class="fi" id="f-deposit" type="number" placeholder="0.00" step="0.01" min="0">
     </div>
     <div class="fg" id="fg-contrib" style="display:none">
-      <label class="fl">Paid into this ISA/LISA this tax year (£)</label>
+      <label class="fl" for="f-contrib">Paid into this ISA/LISA this tax year (£)</label>
       <input class="fi" id="f-contrib" type="number" placeholder="0.00" step="0.01" min="0">
     </div>
     <button class="btn btn-p" onclick="App.saveAccount()">Add Account</button>
@@ -698,7 +698,7 @@ function renderHome() {
         <div style="font-size:13px;color:var(--text-2)">Total savings</div>
         <div style="font-size:36px;font-weight:600;letter-spacing:-1px;margin-top:2px">${gbp(total)}</div>
       </div>
-      ${accounts.length ? '<div class="sec-title">Your Accounts</div>' : ''}
+      ${accounts.length ? '<div class="sec-title" role="heading" aria-level="2">Your Accounts</div>' : ''}
       ${cards}
     </div>`;
 }
@@ -712,7 +712,7 @@ function renderAccounts() {
     html += `<div class="empty"><div class="empty-ic" style="display:flex;justify-content:center">${icon('card', 44)}</div><div class="empty-t">No accounts yet</div><div class="empty-d">Add your savings, LISA, and business accounts to get started</div></div>`;
   } else {
     for (const [type, accs] of Object.entries(grouped)) {
-      html += `<div class="sec-title">${ty(type).lbl}</div>` + accs.map(renderAccountCard).join('');
+      html += `<div class="sec-title" role="heading" aria-level="2">${ty(type).lbl}</div>` + accs.map(renderAccountCard).join('');
     }
   }
   return html + '</div>';
@@ -753,7 +753,7 @@ function renderAccount(id) {
   if (window.Finance.lisaFamily(acc.type)) {
     const ls = window.Finance.lisaSummary(acc, txs);
     lisaHtml = `
-      <div class="sec-title">LISA Status</div>
+      <div class="sec-title" role="heading" aria-level="2">LISA Status</div>
       <div class="card">
         <div class="cb">
           <div style="font-size:13px;font-weight:500;color:var(--text-2)">Tax year ${ls.yr}</div>
@@ -798,7 +798,7 @@ function renderAccount(id) {
 
       ${lisaHtml}
 
-      <div class="sec-title">12-Month Forecast</div>
+      <div class="sec-title" role="heading" aria-level="2">12-Month Forecast</div>
       <div class="card">
         <div class="cb">
           ${!hasEnoughForForecast
@@ -814,7 +814,7 @@ function renderAccount(id) {
         </div>
       </div>
 
-      <div class="sec-title">Recent Transactions</div>
+      <div class="sec-title" role="heading" aria-level="2">Recent Transactions</div>
       <div class="card">
         <div class="cb">${txHtml}</div>
         ${txs.length > 6 ? `<div style="text-align:center;padding:0 0 12px"><button class="btn btn-s" onclick="App.toggleTx()">${S.txExpanded ? 'Show fewer' : 'Show all ' + txs.length}</button></div>` : ''}
@@ -872,7 +872,7 @@ function renderForecast() {
   );
   const isaFamilyCount = accounts.filter(a => window.Finance.isaFamily(a.type)).length;
   const isaCard = isaFamilyCount === 0 ? '' : `
-    <div class="sec-title">ISA Allowance ${isa.taxYearLabel}</div>
+    <div class="sec-title" role="heading" aria-level="2">ISA Allowance ${isa.taxYearLabel}</div>
     <div class="card">
       <div class="cb">
         <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600">
@@ -900,7 +900,7 @@ function renderForecast() {
         ${hasForecast ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="tot-chart" role="img" aria-label="Projected total balance chart"></canvas></div></div>` : ''}
       </div>
 
-      <div class="sec-title">Month by Month</div>
+      <div class="sec-title" role="heading" aria-level="2">Month by Month</div>
       <div class="card">
         <div class="cb">
           ${!hasForecast
@@ -912,7 +912,7 @@ function renderForecast() {
       </div>
 
       ${isaCard}
-      ${accounts.length ? '<div class="sec-title">Per Account (12 months)</div>' + perAcc : ''}
+      ${accounts.length ? '<div class="sec-title" role="heading" aria-level="2">Per Account (12 months)</div>' + perAcc : ''}
     </div>`;
 }
 
@@ -937,7 +937,7 @@ function renderSettings() {
         </div>
       </div>
 
-      <div class="sec-title">Sync</div>
+      <div class="sec-title" role="heading" aria-level="2">Sync</div>
       <div class="card">
         <div class="cb">
           <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">Share your data as an encrypted file, or import someone else's. Tell them the passphrase separately (iMessage or in person) — it's never in the file.</div>
@@ -1216,7 +1216,7 @@ const App = {
       const sample = txs.slice(0, 5);
       upv.innerHTML = `
         <div style="margin-top:16px">
-          <div class="sec-title">${txs.length} transactions found — preview</div>
+          <div class="sec-title" role="heading" aria-level="2">${txs.length} transactions found — preview</div>
           ${fmt ? `<div style="font-size:12px;color:var(--text-2);margin-bottom:6px">Detected format: ${fmt}</div>` : ''}
           <div class="card">
             <div class="cb">
