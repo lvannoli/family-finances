@@ -239,7 +239,7 @@ input[type=file] { display: none; }
 .mi { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--dur) ease; }
 .mi:active { background: #f8fafc; }
 .mi:last-child { border-bottom: none; }
-.mi-ic { font-size: 20px; width: 34px; text-align: center; }
+.mi-ic { color: var(--text); width: 34px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .mi-txt { font-size: 15px; }
 .mi-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
 
@@ -772,7 +772,7 @@ function renderAccounts() {
   for (const a of accounts) { if (!grouped[a.type]) grouped[a.type] = []; grouped[a.type].push(a); }
   let html = `<div class="hd"><h1>Accounts</h1></div><div class="view">`;
   if (!accounts.length) {
-    html += `<div class="empty"><div class="empty-ic">💳</div><div class="empty-t">No accounts yet</div><div class="empty-d">Add your savings, LISA, and business accounts to get started</div></div>`;
+    html += `<div class="empty"><div class="empty-ic" style="display:flex;justify-content:center">${icon('card', 44)}</div><div class="empty-t">No accounts yet</div><div class="empty-d">Add your savings, LISA, and business accounts to get started</div></div>`;
   } else {
     for (const [type, accs] of Object.entries(grouped)) {
       html += `<div class="sec-title">${ty(type).lbl}</div>` + accs.map(renderAccountCard).join('');
@@ -836,8 +836,8 @@ function renderAccount(id) {
     <div class="hd">
       <button class="back" onclick="App.go('home')" aria-label="Back">‹ Back</button>
       <div class="hd-actions">
-        <button class="icon-btn" onclick="App.showUpload('${id}')" aria-label="Upload statement">📂</button>
-        <button class="icon-btn" onclick="App.showAccMenu('${id}')" aria-label="Account menu">⋯</button>
+        <button class="icon-btn" onclick="App.showUpload('${id}')" aria-label="Upload statement">${icon('folder', 20)}</button>
+        <button class="icon-btn" onclick="App.showAccMenu('${id}')" aria-label="Account menu">${icon('dots', 20)}</button>
       </div>
     </div>
     <div class="view">
@@ -884,7 +884,7 @@ function renderAccount(id) {
       </div>
 
       <div style="margin-top:16px">
-        <button class="btn btn-p" onclick="App.showUpload('${id}')">📂  Upload Statement</button>
+        <button class="btn btn-p" onclick="App.showUpload('${id}')" style="display:flex;align-items:center;justify-content:center;gap:8px">${icon('folder', 18)}Upload Statement</button>
       </div>
     </div>`;
 }
@@ -986,15 +986,15 @@ function renderSettings() {
       <div class="card">
         <div class="cb">
           <div class="mi" onclick="App.exportData()">
-            <span class="mi-ic">📤</span>
+            <span class="mi-ic">${icon('export', 20)}</span>
             <div class="mi-txt">Export Data<div class="mi-sub">Download all data as JSON backup</div></div>
           </div>
           <div class="mi" onclick="App.importData()">
-            <span class="mi-ic">📥</span>
+            <span class="mi-ic">${icon('import', 20)}</span>
             <div class="mi-txt">Import Data<div class="mi-sub">Restore from a previous backup</div></div>
           </div>
           <div class="mi" style="color:var(--danger)" onclick="App.clearData()">
-            <span class="mi-ic">🗑️</span>
+            <span class="mi-ic">${icon('trash', 20)}</span>
             <div class="mi-txt">Clear All Data<div class="mi-sub" style="color:var(--text-2)">Delete all accounts and transactions</div></div>
           </div>
         </div>
@@ -1017,11 +1017,11 @@ function renderSettings() {
 
       <div class="card" style="margin-top:12px">
         <div class="cb" style="font-size:13px;color:var(--text-2);line-height:1.65">
-          <strong style="color:var(--text);font-size:14px">📱 Add to iPhone Home Screen</strong><br>
+          <strong style="color:var(--text);font-size:14px">Add to iPhone Home Screen</strong><br>
           Open this page in Safari → tap the Share button (□↑) at the bottom → choose <em>Add to Home Screen</em>. The app will appear just like a native app.<br><br>
-          <strong style="color:var(--text);font-size:14px">🔒 Your data is private</strong><br>
+          <strong style="color:var(--text);font-size:14px">Your data is private</strong><br>
           Everything is stored only on this device. Nothing is sent to any server.<br><br>
-          <strong style="color:var(--text);font-size:14px">📊 Supported Banks (CSV)</strong><br>
+          <strong style="color:var(--text);font-size:14px">Supported Banks (CSV)</strong><br>
           Barclays, Monzo, HSBC, Lloyds, Nationwide, Starling, NatWest / RBS, Santander, and most other UK banks that export CSV.
         </div>
       </div>
@@ -1273,8 +1273,7 @@ const App = {
       }
 
       if (!txs || !txs.length) {
-        upv.innerHTML = `<div class="err-box">
-          ⚠️ No transactions found in this file.<br><br>
+        upv.innerHTML = `<div class="err-box"><span style="display:inline-flex;vertical-align:-3px;margin-right:6px">${icon('warning', 16)}</span>No transactions found in this file.<br><br>
           <strong>Tips:</strong><br>
           • Export CSV directly from your bank's website or app (don't open in Excel first)<br>
           • For PDF: some bank PDFs are image-based — try CSV export instead<br>
@@ -1325,16 +1324,16 @@ const App = {
     document.getElementById('gen-title').textContent = escHtml(acc?.name || '');
     document.getElementById('gen-body').innerHTML = `
       <div class="mi" onclick="App.closeModal('gen');App.showUpload('${id}')">
-        <span class="mi-ic">📂</span><div class="mi-txt">Upload Statement</div>
+        <span class="mi-ic">${icon('folder', 20)}</span><div class="mi-txt">Upload Statement</div>
       </div>
       <div class="mi" onclick="App.editAccount('${id}')">
-        <span class="mi-ic">⚙️</span><div class="mi-txt">Edit Account Details</div>
+        <span class="mi-ic">${icon('gear', 20)}</span><div class="mi-txt">Edit Account Details</div>
       </div>
       <div class="mi" onclick="App.editBal('${id}')">
-        <span class="mi-ic">✏️</span><div class="mi-txt">Update Balance Manually</div>
+        <span class="mi-ic">${icon('pencil', 20)}</span><div class="mi-txt">Update Balance Manually</div>
       </div>
       <div class="mi" style="color:var(--danger)" onclick="App.deleteAcc('${id}')">
-        <span class="mi-ic">🗑️</span><div class="mi-txt">Delete Account</div>
+        <span class="mi-ic">${icon('trash', 20)}</span><div class="mi-txt">Delete Account</div>
       </div>`;
     this.openModal('gen');
   },
