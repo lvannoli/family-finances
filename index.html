@@ -413,7 +413,7 @@ input[type=file] { display: none; }
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script src="js/vendor/chart.umd.min.js"></script>
 <script type="module">
@@ -1065,9 +1065,9 @@ const App = {
     if (params.id) S.accId = params.id;
 
     // update nav highlight
-    document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.nb').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
     const navMap = { home:'n-home', accounts:'n-accounts', forecast:'n-forecast', settings:'n-settings' };
-    if (navMap[view]) document.getElementById(navMap[view])?.classList.add('active');
+    if (navMap[view]) { const el = document.getElementById(navMap[view]); if (el) { el.classList.add('active'); el.setAttribute('aria-current', 'page'); } }
 
     const app = document.getElementById('app');
     switch (view) {
@@ -1216,6 +1216,7 @@ const App = {
           <button class="btn btn-p" onclick="App.obNext()">Continue</button>
           ${this.obStep > 0 ? `<button class="ob-back" onclick="App.obBack()">Back</button>` : ''}
         </div>`}`;
+    const p = document.getElementById('ob-pass'); if (p) p.focus(); else document.querySelector('#ob-body .btn-p')?.focus();
   },
   obNext() { if (this.obStep < OB_STEPS.length - 1) { this.obStep++; this.obRender(); } },
   obBack() { if (this.obStep > 0) { this.obStep--; this.obRender(); } },
