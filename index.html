@@ -129,6 +129,7 @@ body {
   padding: 14px 16px; display: flex; align-items: center; gap: 12px;
   cursor: pointer; border: none; width: 100%; text-align: left;
   font-family: inherit; transition: transform .12s;
+  color: var(--text);
 }
 .ac:active { transform: scale(.98); }
 .ac + .ac { margin-top: 10px; }
@@ -141,13 +142,13 @@ body {
 .ac-trend { font-size: 11px; margin-top: 2px; color: var(--text-2); }
 .up { color: var(--up); } .dn { color: var(--danger); }
 .muted { color: var(--text-2); }
-.t-savings{--type-bg:#d1fae5;--type-ink:#047857}
-.t-cash-isa{--type-bg:#e0f2fe;--type-ink:#0369a1}
-.t-ss-isa{--type-bg:#fef3c7;--type-ink:#b45309}
-.t-lisa{--type-bg:#ede9fe;--type-ink:#6d28d9}
-.t-ss-lisa{--type-bg:#fce7f3;--type-ink:#be185d}
-.t-business{--type-bg:#ccfbf1;--type-ink:#0f766e}
-.t-other{--type-bg:#e2e8f0;--type-ink:#475569}
+.t-savings{--type-bg:#a7f3d0;--type-ink:#047857}
+.t-cash-isa{--type-bg:#bae6fd;--type-ink:#0369a1}
+.t-ss-isa{--type-bg:#fde68a;--type-ink:#b45309}
+.t-lisa{--type-bg:#ddd6fe;--type-ink:#6d28d9}
+.t-ss-lisa{--type-bg:#fbcfe8;--type-ink:#be185d}
+.t-business{--type-bg:#99f6e4;--type-ink:#0f766e}
+.t-other{--type-bg:#cbd5e1;--type-ink:#475569}
 
 /* ── MODALS ──────────────────────────────── */
 .overlay {
@@ -842,12 +843,12 @@ function renderAccount(id) {
         </div>
       </div>
 
-      <div class="card">
+      <div class="card ${t.cls}" style="background:var(--type-bg)">
         <div class="cb">
           <div style="font-size:13px;font-weight:500;color:var(--text-2)">Current balance</div>
           <div style="font-size:34px;font-weight:600;margin:4px 0;letter-spacing:-1px">${gbp(bal)}</div>
           ${balCaption(acc) ? `<div style="font-size:12px;color:var(--text-2);margin-top:2px">${balCaption(acc)}</div>` : ''}
-          ${avg !== 0 ? `<div style="font-size:13px;color:${avg >= 0 ? 'var(--up)' : 'var(--danger)'}">${fmtChg(avg)} avg per month</div>` : ''}
+          ${avg !== 0 ? `<div style="font-size:13px;color:var(--text-2)">${fmtChg(avg)} avg per month</div>` : ''}
         </div>
         ${txs.length >= 2 ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="acc-chart" role="img" aria-label="Balance history chart"></canvas></div></div>` : ''}
       </div>
@@ -909,7 +910,7 @@ function renderForecast() {
     const t = ty(a.type);
     const on = S.fcLines.has(a.id);
     return `
-      <div class="card fc-line-card ${on ? 'fc-on' : ''}" style="margin-bottom:10px" role="button" tabindex="0" aria-pressed="${on}" onclick="App.toggleFcLine('${a.id}')">
+      <div class="card fc-line-card ${t.cls} ${on ? 'fc-on' : ''}" style="margin-bottom:10px;background:var(--type-bg)" role="button" tabindex="0" aria-pressed="${on}" onclick="App.toggleFcLine('${a.id}')">
         <div class="cb" style="display:flex;align-items:center;gap:10px">
           <div class="ac-icon ${t.cls}" style="font-size:16px">${initial(a.name)}</div>
           <div style="flex:1;min-width:0">
@@ -918,7 +919,7 @@ function renderForecast() {
           </div>
           <div style="text-align:right">
             <div style="font-weight:600;font-size:16px">${gbp(aProj12)}</div>
-            <div style="font-size:12px;color:${aAvg >= 0 ? 'var(--up)' : 'var(--danger)'}">${fmtChg(aAvg)}/mo</div>
+            <div style="font-size:12px;color:var(--text-2)">${fmtChg(aAvg)}/mo</div>
           </div>
           <span class="fc-dot" style="--dot:${typeColor(a.type).ink}"></span>
         </div>
