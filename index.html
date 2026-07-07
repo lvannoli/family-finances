@@ -620,7 +620,6 @@ const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: nul
 const OB_STEPS = [
   { icon: 'home',   title: 'Welcome to Family Finances', text: "A private place for your UK savings, ISAs and LISAs. Everything stays on this device — nothing is ever sent to a server." },
   { icon: 'export', title: 'Share with your partner', text: "Export an encrypted copy of your data and send it by AirDrop, Messages or file. Your partner imports it and enters the passphrase you agree on together. Either of you can share updates — the changes merge automatically." },
-  { icon: 'gear',   title: 'Set your passphrase', text: "You'll use this passphrase to encrypt whatever you share. Share it with your partner separately (say it out loud or over Messages) — it's never inside the file." },
 ];
 
 const ICONS = {
@@ -1271,26 +1270,20 @@ const App = {
       <div class="ob-title">${s.title}</div>
       <div class="ob-text">${s.text}</div>
       ${last ? `
-        <div class="ob-warn"><strong>Important:</strong> if you forget this passphrase, files you've shared can't be decrypted — there's no reset. Write it down somewhere safe.</div>
-        <input id="ob-pass" type="password" autocomplete="new-password" placeholder="Choose a passphrase" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:14px;font-size:16px;margin-bottom:6px" oninput="document.getElementById('ob-go').disabled = this.value.trim().length < 4">
-        <div id="ob-pass-err" style="color:var(--danger);font-size:12px;min-height:16px;margin-bottom:8px"></div>
         <div class="ob-actions">
-          <button class="btn btn-p" id="ob-go" disabled onclick="App.finishOnboarding()">Get started</button>
-          <button class="ob-back" onclick="App.obBack()">Back</button>
+          <button class="btn btn-p" onclick="App.finishOnboarding()">Get started</button>
+          ${this.obStep > 0 ? `<button class="ob-back" onclick="App.obBack()">Back</button>` : ''}
         </div>`
       : `
         <div class="ob-actions">
           <button class="btn btn-p" onclick="App.obNext()">Continue</button>
           ${this.obStep > 0 ? `<button class="ob-back" onclick="App.obBack()">Back</button>` : ''}
         </div>`}`;
-    const p = document.getElementById('ob-pass'); if (p) p.focus(); else document.querySelector('#ob-body .btn-p')?.focus();
+    document.querySelector('#ob-body .btn-p')?.focus();
   },
   obNext() { if (this.obStep < OB_STEPS.length - 1) { this.obStep++; this.obRender(); } },
   obBack() { if (this.obStep > 0) { this.obStep--; this.obRender(); } },
   finishOnboarding() {
-    const v = (document.getElementById('ob-pass').value || '').trim();
-    if (v.length < 4) { document.getElementById('ob-pass-err').textContent = 'Enter a passphrase (at least 4 characters).'; return; }
-    window.FileSync.setPass(v);
     localStorage.setItem('ff_onboarded', '1');
     document.getElementById('onboarding').style.display = 'none';
     this.openModal('add-account');
