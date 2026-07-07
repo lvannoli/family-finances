@@ -554,6 +554,65 @@ const FC = {
 };
 
 /* ═══════════════════════════════════════════
+   PDF STATEMENT PARSER (on-device, self-hosted pdf.js)
+═══════════════════════════════════════════ */
+const PDF = {
+  async parse(file) {
+    if (!window.pdfjsLib) await this._loadLib();
+    const buf = await file.arrayBuffer();
+    const doc = await window.pdfjsLib.getDocument({ data: buf }).promise;
+    let text = '';
+    for (let p = 1; p <= doc.numPages; p++) {
+      const page = await doc.getPage(p);
+      const content = await page.getTextContent();
+      const items = content.items.slice().sort((a, b) => b.transform[5] - a.transform[5] || a.transform[4] - b.transform[4]);
+      let cy = null, cl = '', lines = [];
+      for (const it of items) {
+        const y = Math.round(it.transform[5]);
+        if (cy == null) cy = y;
+        if (Math.abs(y - cy) > 3) { if (cl.trim()) lines.push(cl.trim()); cl = it.str; cy = y; }
+        else cl += ' ' + it.str;
+      }
+      if (cl.trim()) lines.push(cl.trim());
+      text += lines.join('\n') + '\n';
+    }
+    return this.extractTxs(text);
+  },
+  _loadLib() {
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'js/vendor/pdf.min.js';
+      s.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/vendor/pdf.worker.min.js'; res(); };
+      s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  },
+  extractTxs(text) {
+    const lines = text.split('\n');
+    const txs = [];
+    const pats = [
+      /^(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})\s+(.{3,60}?)\s+(-?\d{1,3}(?:,\d{3})*\.\d{2})\s*(-?\d{1,3}(?:,\d{3})*\.\d{2})?$/,
+      /^(\d{1,2}\s+[A-Za-z]{3,}\s+\d{4})\s+(.{3,60}?)\s+(-?\d{1,3}(?:,\d{3})*\.\d{2})$/,
+    ];
+    for (const line of lines) {
+      for (const pat of pats) {
+        const m = line.match(pat);
+        if (!m) continue;
+        const date = window.CSV.parseDate(m[1]);
+        if (!date) continue;
+        const amt = parseFloat(m[3].replace(/,/g, ''));
+        if (isNaN(amt)) continue;
+        const tx = { date, desc: m[2].trim(), amt: Math.round(amt * 100) / 100 };
+        if (m[4]) { const b = parseFloat(m[4].replace(/,/g, '')); if (!isNaN(b)) tx.bal = Math.round(b * 100) / 100; }
+        txs.push(tx);
+        break;
+      }
+    }
+    return txs;
+  }
+};
+
+/* ═══════════════════════════════════════════
    STATE & HELPERS
 ═══════════════════════════════════════════ */
 const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: null, txExpanded: false, fcExpanded: false, fcMonthly: false, fcLines: new Set() };
@@ -1048,9 +1107,9 @@ function uploadFormHTML() {
     <div class="upload-zone" id="uz" onclick="document.getElementById('fi').click()">
       <div class="uz-icon">${icon('folder', 38)}</div>
       <div class="uz-txt">Tap to upload bank statement</div>
-      <div class="uz-hint">CSV · Barclays, Monzo, HSBC, Lloyds, Nationwide,<br>Starling, NatWest, Santander and more</div>
+      <div class="uz-hint">CSV or PDF · Barclays, Monzo, HSBC, Lloyds, Nationwide,<br>Starling, NatWest, Santander and more</div>
     </div>
-    <input type="file" id="fi" accept=".csv,text/csv" onchange="App.handleFile(this.files[0])">
+    <input type="file" id="fi" accept=".csv,.pdf,text/csv,application/pdf" onchange="App.handleFile(this.files[0])">
     <div id="upv"></div>`;
 }
 
@@ -1335,15 +1394,22 @@ const App = {
     const upv = document.getElementById('upv');
     upv.innerHTML = '<div class="loading"><div class="spin"></div>Parsing statement…</div>';
     try {
-      const text = await file.text();
-      const fmt = window.CSV.formatLabel(text);
-      const txs = window.CSV.parse(text);
+      let txs, fmt = null;
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        txs = await PDF.parse(file);
+        fmt = 'PDF';
+      } else {
+        const text = await file.text();
+        fmt = window.CSV.formatLabel(text);
+        txs = window.CSV.parse(text);
+      }
 
       if (!txs || !txs.length) {
         upv.innerHTML = `<div class="err-box"><span style="display:inline-flex;vertical-align:-3px;margin-right:6px">${icon('warning', 16)}</span>No transactions found in this file.<br><br>
           <strong>Tips:</strong><br>
           • Export CSV directly from your bank's website or app (don't open in Excel first)<br>
-          • Make sure the file isn't empty or password-protected
+          • Make sure the file isn't empty or password-protected<br>
+          • For PDF: text-based statements work best; scanned/image PDFs can't be read — use CSV if it fails<br>
         </div>`;
         return;
       }
