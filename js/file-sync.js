@@ -78,6 +78,28 @@ function downloadBundle() {
   });
 }
 
+async function buildShareLink() {
+  const text = await bundleText(); if (!text) return null;   // bundleText handles no-pass (but callers wrap in ensurePass)
+  const encoded = encodeURIComponent(text);
+  if (encoded.length > 14000) return { tooBig: true, text };
+  return { link: location.origin + location.pathname + '#d=' + encoded, text };
+}
+function shareLink() {
+  ensurePass(async () => {
+    const r = await buildShareLink(); if (!r) return;
+    if (r.tooBig) { window.toast('Too many transactions for a link — downloaded a file instead'); downloadText(r.text); return; }
+    if (navigator.share) { try { await navigator.share({ title: 'Family Finances', text: 'Open our shared finances:', url: r.link }); } catch (e) { /* cancelled */ } }
+    else { try { await navigator.clipboard.writeText(r.link); window.toast('Link copied — send it to your partner'); } catch { window.prompt('Copy this link:', r.link); } }
+  });
+}
+function copyLink() {
+  ensurePass(async () => {
+    const r = await buildShareLink(); if (!r) return;
+    if (r.tooBig) { window.toast('Too many transactions for a link — use Download file'); return; }
+    try { await navigator.clipboard.writeText(r.link); window.toast('Link copied — send it to your partner'); } catch { window.prompt('Copy this link:', r.link); }
+  });
+}
+
 let _pending = null;
 function showBar(msg) { const b = document.getElementById('pass-bar'); if (!b) return; b.style.display = ''; const e = document.getElementById('pass-bar-err'); if (e) e.textContent = msg || ''; const i = document.getElementById('pass-bar-input'); if (i) { i.value = ''; i.focus?.(); } }
 function hideBar() { const b = document.getElementById('pass-bar'); if (b) b.style.display = 'none'; }
@@ -88,6 +110,15 @@ function beginImport(text) {
   try { env = JSON.parse(text); if (!env || !env.ct || !env.salt || !env.iv) throw 0; }
   catch { window.alert('Not a valid sync file.'); return; }
   _pending = env; showBar();
+}
+function importFromHash() {
+  const h = location.hash || '';
+  const m = h.match(/^#d=(.+)$/);
+  if (!m) return false;
+  let text; try { text = decodeURIComponent(m[1]); } catch { return false; }
+  try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+  beginImport(text);   // validates + shows the pass-bar; partner enters the passphrase
+  return true;
 }
 async function submitImportPassphrase() {
   const inp = document.getElementById('pass-bar-input');
@@ -111,5 +142,5 @@ async function submitImportPassphrase() {
 }
 
 if (typeof window !== 'undefined') {
-  window.FileSync = { mergeData, buildEnvelope, shareBundle, copyBundle, downloadBundle, beginImport, submitImportPassphrase, hasPass: () => !!getPass(), setPass };
+  window.FileSync = { mergeData, buildEnvelope, shareBundle, copyBundle, downloadBundle, shareLink, copyLink, importFromHash, beginImport, submitImportPassphrase, hasPass: () => !!getPass(), setPass };
 }
