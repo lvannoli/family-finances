@@ -240,7 +240,10 @@ input[type=file] { display: none; }
 .lisa-stat .l { font-size: 11px; color: var(--text-2); margin-top: 3px; }
 
 /* ── FORECAST TABLE ──────────────────────── */
-.ft { width: 100%; border-collapse: collapse; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ft { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.ft th, .ft td { white-space: nowrap; }
+.ft th:not(:first-child), .ft td:not(:first-child) { text-align: right; padding-left: 14px; }
 .ft th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-2); padding: 8px 0; border-bottom: 1px solid var(--border); }
 .ft td { padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
 .ft tr:last-child td { border-bottom: none; }
@@ -867,7 +870,7 @@ function renderAccount(id) {
                  <div style="font-size:13px;color:${(proj[0]?.chg ?? 0) >= 0 ? 'var(--up)' : 'var(--danger)'}">${fmtChg(proj[0]?.chg ?? 0)}/mo</div>
                </div>
                <button class="btn btn-s" style="margin-top:10px" onclick="App.toggleForecast()">${S.fcExpanded ? 'Hide month-by-month' : 'Show month-by-month'}</button>
-               ${S.fcExpanded ? `<table class="ft" style="margin-top:10px"><thead><tr><th>Month</th><th>Balance</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>` : ''}
+               ${S.fcExpanded ? `<div class="table-wrap"><table class="ft" style="margin-top:10px"><thead><tr><th>Month</th><th>Balance</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table></div>` : ''}
                <div style="font-size:12px;color:var(--text-2);margin-top:10px">Simple estimate from your recent average or set rate — not financial advice. It doesn't predict one-off lump sums.</div>`}
         </div>
       </div>
@@ -966,7 +969,7 @@ function renderForecast() {
           ${!hasForecast
             ? `<div style="color:var(--text-2);font-size:14px">Upload statements to see your forecast here.</div>`
             : `<button class="btn btn-s" onclick="App.toggleFcMonthly()">${S.fcMonthly ? 'Hide month-by-month' : 'Show month-by-month'}</button>
-            ${S.fcMonthly ? `<table class="ft" style="margin-top:10px"><thead><tr><th>Month</th><th>Total</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table>` : ''}
+            ${S.fcMonthly ? `<div class="table-wrap"><table class="ft" style="margin-top:10px"><thead><tr><th>Month</th><th>Total</th><th>Change</th></tr></thead><tbody>${forecastRows}</tbody></table></div>` : ''}
             <div style="font-size:12px;color:var(--text-2);margin-top:10px">Simple estimate from your recent average or set rate — not financial advice. It doesn't predict one-off lump sums.</div>`}
         </div>
       </div>
