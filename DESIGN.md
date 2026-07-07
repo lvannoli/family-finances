@@ -165,7 +165,7 @@ on top. No saturated fills behind text, no glow, no gradient — pastel keeps it
 **Character:** native and trustworthy; hierarchy from weight/size/space, not decorative faces.
 
 ### Hierarchy
-- **Display** (600, 30–36px, −1px tracking): the one big number (Home total, balance, 12-mo forecast).
+- **Display** (600, 30–36px, −1px tracking): the one big number (Home total, balance, 12-mo forecast). Applied via the `.num-display` class (34px/600/-1px) — the single big-number style.
 - **Headline** (700, 18px): screen/header titles.
 - **Title** (600, 17px): empty-state titles, in-card leads.
 - **Body** (400–500, 15–16px, lh 1.5): rows, captions, inputs (16px on inputs to avoid iOS zoom).

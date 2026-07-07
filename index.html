@@ -109,6 +109,7 @@ body {
 /* ── VIEW / LAYOUT ──────────────────────── */
 .view { padding: 20px 18px 28px; }
 .sec-title { font-size: 13px; font-weight: 600; color: var(--text-2); margin: 28px 0 10px; }
+.num-display { font-size: 34px; font-weight: 600; letter-spacing: -1px; }
 
 /* ── CARDS ──────────────────────────────── */
 .card {
@@ -214,7 +215,7 @@ body {
   background: #f8fafc; transition: border-color .18s, background .18s;
 }
 .upload-zone:hover, .upload-zone.drag { border-color: var(--primary-mid); background: #eff6ff; }
-.uz-icon { font-size: 38px; margin-bottom: 10px; }
+.uz-icon { font-size: 38px; margin-bottom: 10px; display: flex; justify-content: center; }
 .uz-txt { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
 .uz-hint { font-size: 12px; color: var(--text-2); line-height: 1.5; }
 input[type=file] { display: none; }
@@ -263,7 +264,7 @@ input[type=file] { display: none; }
 
 /* ── EMPTY / LOADING ─────────────────────── */
 .empty { text-align: center; padding: 52px 24px; color: var(--text-2); }
-.empty-ic { font-size: 52px; margin-bottom: 12px; }
+.empty-ic { font-size: 52px; margin-bottom: 12px; display: flex; justify-content: center; }
 .empty-t { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
 .empty-d { font-size: 14px; line-height: 1.55; }
 .loading { text-align: center; padding: 32px; color: var(--text-2); }
@@ -744,7 +745,7 @@ function renderHome() {
 
   const cards = accounts.length
     ? accounts.map(renderAccountCard).join('')
-    : `<div class="empty"><div class="empty-ic" style="display:flex;justify-content:center">${icon('card', 44)}</div><div class="empty-t">No accounts yet</div><div class="empty-d">Tap the + button to add your first savings account</div></div>`;
+    : `<div class="empty"><div class="empty-ic">${icon('card', 44)}</div><div class="empty-t">No accounts yet</div><div class="empty-d">Tap the + button to add your first savings account</div></div>`;
 
   return `
     <div class="hd">
@@ -753,7 +754,7 @@ function renderHome() {
     <div class="view">
       <div style="padding:8px 2px 20px">
         <div style="font-size:13px;color:var(--text-2)">Total savings</div>
-        <div style="font-size:36px;font-weight:600;letter-spacing:-1px;margin-top:2px">${gbp(total)}</div>
+        <div class="num-display" style="margin-top:2px">${gbp(total)}</div>
       </div>
       ${accounts.length ? '<div class="sec-title" role="heading" aria-level="2">Your Accounts</div>' : ''}
       ${cards}
@@ -766,7 +767,7 @@ function renderAccounts() {
   for (const a of accounts) { if (!grouped[a.type]) grouped[a.type] = []; grouped[a.type].push(a); }
   let html = `<div class="hd"><h1>Accounts</h1></div><div class="view">`;
   if (!accounts.length) {
-    html += `<div class="empty"><div class="empty-ic" style="display:flex;justify-content:center">${icon('card', 44)}</div><div class="empty-t">No accounts yet</div><div class="empty-d">Add your savings, LISA, and business accounts to get started</div></div>`;
+    html += `<div class="empty"><div class="empty-ic">${icon('card', 44)}</div><div class="empty-t">No accounts yet</div><div class="empty-d">Add your savings, LISA, and business accounts to get started</div></div>`;
   } else {
     for (const [type, accs] of Object.entries(grouped)) {
       html += `<div class="sec-title" role="heading" aria-level="2">${ty(type).lbl}</div>` + accs.map(renderAccountCard).join('');
@@ -846,7 +847,7 @@ function renderAccount(id) {
       <div class="card ${t.cls}" style="background:var(--type-bg)">
         <div class="cb">
           <div style="font-size:13px;font-weight:500;color:var(--text-2)">Current balance</div>
-          <div style="font-size:34px;font-weight:600;margin:4px 0;letter-spacing:-1px">${gbp(bal)}</div>
+          <div class="num-display" style="margin:4px 0">${gbp(bal)}</div>
           ${balCaption(acc) ? `<div style="font-size:12px;color:var(--text-2);margin-top:2px">${balCaption(acc)}</div>` : ''}
           ${avg !== 0 ? `<div style="font-size:13px;color:var(--text-2)">${fmtChg(avg)} avg per month</div>` : ''}
         </div>
@@ -953,7 +954,7 @@ function renderForecast() {
       <div class="card">
         <div class="cb">
           <div style="font-size:13px;font-weight:500;color:var(--text-2)">Total in 12 months</div>
-          <div style="font-size:30px;font-weight:600;margin:4px 0;letter-spacing:-1px">${gbp(projIn12)}</div>
+          <div class="num-display" style="margin:4px 0">${gbp(projIn12)}</div>
           <div style="font-size:13px;color:${avg >= 0 ? 'var(--up)' : 'var(--danger)'}">${fmtChg(avg)} avg per month across all accounts</div>
         </div>
         ${hasForecast ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="tot-chart" role="img" aria-label="Projected balances — total and selected accounts"></canvas></div></div>` : ''}
@@ -1038,7 +1039,7 @@ function renderSettings() {
 function uploadFormHTML() {
   return `
     <div class="upload-zone" id="uz" onclick="document.getElementById('fi').click()">
-      <div class="uz-icon" style="display:flex;justify-content:center">${icon('folder', 38)}</div>
+      <div class="uz-icon">${icon('folder', 38)}</div>
       <div class="uz-txt">Tap to upload bank statement</div>
       <div class="uz-hint">CSV · Barclays, Monzo, HSBC, Lloyds, Nationwide,<br>Starling, NatWest, Santander and more</div>
     </div>
