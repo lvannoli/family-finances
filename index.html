@@ -985,6 +985,10 @@ function renderSettings() {
     <div class="view">
       <div class="card">
         <div class="cb">
+          <div class="mi" role="button" tabindex="0" onclick="App.installApp()">
+            <span class="mi-ic">${icon('home', 20)}</span>
+            <div class="mi-txt">Add to Home Screen<div class="mi-sub">Install this app on your device</div></div>
+          </div>
           <div class="mi" role="button" tabindex="0" onclick="App.exportData()">
             <span class="mi-ic">${icon('export', 20)}</span>
             <div class="mi-txt">Export Data<div class="mi-sub">Download all data as JSON backup</div></div>
@@ -1477,8 +1481,32 @@ const App = {
         toast('All data cleared', 6000, { label: 'Undo', fn: () => this.undoLast() });
         this.go('home');
       });
+  },
+
+  async installApp() {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      try { await deferredInstallPrompt.userChoice; } catch {}
+      deferredInstallPrompt = null;
+      return;
+    }
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    document.getElementById('gen-title').textContent = 'Add to Home Screen';
+    document.getElementById('gen-body').innerHTML = `
+      <div style="font-size:14px;line-height:1.6;color:var(--text-2)">
+        ${isIOS
+          ? `<p>In <strong>Safari</strong>: tap the <strong>Share</strong> button (□↑) at the bottom, then choose <strong>Add to Home Screen</strong>. The app opens full-screen, like a native app.</p>`
+          : `<p>In your browser menu (⋮ or the address bar), choose <strong>Install app</strong> or <strong>Add to Home Screen</strong>. The app opens in its own window.</p>`}
+        <p style="margin-top:10px">Everything stays on this device — installing just adds a shortcut.</p>
+      </div>
+      <button class="btn btn-p" style="margin-top:14px" onclick="App.closeModal('gen')">Got it</button>`;
+    this.openModal('gen');
   }
 };
+
+// ── Install Prompt (beforeinstallprompt) ──
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstallPrompt = e; });
 
 // ── Boot ──────────────────────────────────
 window.DB = DB;
