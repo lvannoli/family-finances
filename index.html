@@ -834,7 +834,6 @@ function renderAccount(id) {
     <div class="hd">
       <button class="back" onclick="App.go('home')" aria-label="Back">‹ Back</button>
       <div class="hd-actions">
-        <button class="icon-btn" onclick="App.showUpload('${id}')" aria-label="Upload statement">${icon('folder', 20)}</button>
         <button class="icon-btn" onclick="App.showAccMenu('${id}')" aria-label="Account menu">${icon('dots', 20)}</button>
       </div>
     </div>
@@ -963,6 +962,8 @@ function renderForecast() {
         ${hasForecast ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="tot-chart" role="img" aria-label="Projected balances — total and selected accounts"></canvas></div></div>` : ''}
       </div>
 
+      ${accounts.length ? '<div class="sec-title" role="heading" aria-level="2">Per Account (12 months)</div>' + perAcc : ''}
+
       <div class="sec-title" role="heading" aria-level="2">Month by Month</div>
       <div class="card">
         <div class="cb">
@@ -975,7 +976,6 @@ function renderForecast() {
       </div>
 
       ${isaCard}
-      ${accounts.length ? '<div class="sec-title" role="heading" aria-level="2">Per Account (12 months)</div>' + perAcc : ''}
     </div>`;
 }
 
@@ -1385,9 +1385,6 @@ const App = {
     const acc = DB.accounts().find(a => a.id === id);
     document.getElementById('gen-title').textContent = escHtml(acc?.name || '');
     document.getElementById('gen-body').innerHTML = `
-      <div class="mi" role="button" tabindex="0" onclick="App.closeModal('gen');App.showUpload('${id}')">
-        <span class="mi-ic">${icon('folder', 20)}</span><div class="mi-txt">Upload Statement</div>
-      </div>
       <div class="mi" role="button" tabindex="0" onclick="App.editAccount('${id}')">
         <span class="mi-ic">${icon('gear', 20)}</span><div class="mi-txt">Edit Account Details</div>
       </div>
