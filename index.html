@@ -755,10 +755,10 @@ function renderHome() {
       <h1>Family Finances</h1>
     </div>
     <div class="view">
-      <div style="padding:8px 2px 20px">
+      ${accounts.length ? `<div style="padding:8px 2px 20px">
         <div style="font-size:13px;color:var(--text-2)">Total savings</div>
         <div class="num-display" style="margin-top:2px">${gbp(total)}</div>
-      </div>
+      </div>` : ''}
       ${accounts.length ? '<div class="sec-title" role="heading" aria-level="2">Your Accounts</div>' : ''}
       ${cards}
     </div>`;
