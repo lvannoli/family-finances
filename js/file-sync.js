@@ -33,21 +33,50 @@ function fileName() { return `family-finances-${new Date().toISOString().slice(0
 function downloadText(text) {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const a = document.createElement('a'); a.href = url; a.download = fileName(); a.click();
-  URL.revokeObjectURL(url); window.toast('Sync file downloaded ✓');
+  URL.revokeObjectURL(url); window.toast('Sync file downloaded');
+}
+function ensurePass(cb) {
+  if (getPass()) { cb(); return; }
+  const t = document.getElementById('gen-title'), b = document.getElementById('gen-body');
+  t.textContent = 'Set a passphrase to share';
+  b.innerHTML = `
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">Choose a passphrase to encrypt what you share. Tell it to your partner separately — they'll type it to open the file. It's never inside the file.</div>
+    <input id="ep-pass" type="password" autocomplete="new-password" placeholder="Choose a passphrase" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:14px;font-size:16px;margin-bottom:6px">
+    <div style="font-size:12px;color:var(--danger-ink);background:var(--danger-bg);border-radius:12px;padding:8px 10px;margin-bottom:8px">If you forget it, files you've shared can't be decrypted — write it down.</div>
+    <div id="ep-err" style="color:var(--danger);font-size:12px;min-height:16px;margin-bottom:6px"></div>
+    <button class="btn btn-p" id="ep-go">Save & continue</button>
+    <button class="btn btn-s" onclick="window.App.closeModal('gen')">Cancel</button>`;
+  window.App.openModal('gen');
+  document.getElementById('ep-pass').focus?.();
+  document.getElementById('ep-go').onclick = () => {
+    const v = (document.getElementById('ep-pass').value || '').trim();
+    if (v.length < 4) { document.getElementById('ep-err').textContent = 'Enter a passphrase (at least 4 characters).'; return; }
+    setPass(v);
+    window.App.closeModal('gen');
+    cb();
+  };
 }
 async function shareBundle() {
-  const text = await bundleText(); if (!text) return;
-  const file = new File([text], fileName(), { type: 'application/json' });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: 'Family Finances data' }); } catch (e) { /* user cancelled */ }
-  } else { downloadText(text); }
+  ensurePass(async () => {
+    const text = await bundleText(); if (!text) return;
+    const file = new File([text], fileName(), { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'Family Finances data' }); } catch (e) { /* user cancelled */ }
+    } else { downloadText(text); }
+  });
 }
-async function copyBundle() {
-  const text = await bundleText(); if (!text) return;
-  try { await navigator.clipboard.writeText(text); window.toast('Sync bundle copied — paste it to the other person ✓'); }
-  catch { window.prompt('Copy this sync bundle:', text); }
+function copyBundle() {
+  ensurePass(async () => {
+    const text = await bundleText(); if (!text) return;
+    try { await navigator.clipboard.writeText(text); window.toast('Sync bundle copied — paste it to the other person'); }
+    catch { window.prompt('Copy this sync bundle:', text); }
+  });
 }
-async function downloadBundle() { const text = await bundleText(); if (text) downloadText(text); }
+function downloadBundle() {
+  ensurePass(async () => {
+    const text = await bundleText(); if (text) downloadText(text);
+  });
+}
 
 let _pending = null;
 function showBar(msg) { const b = document.getElementById('pass-bar'); if (!b) return; b.style.display = ''; const e = document.getElementById('pass-bar-err'); if (e) e.textContent = msg || ''; const i = document.getElementById('pass-bar-input'); if (i) { i.value = ''; i.focus?.(); } }
