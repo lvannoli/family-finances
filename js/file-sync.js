@@ -64,7 +64,7 @@ async function submitImportPassphrase() {
   const inp = document.getElementById('pass-bar-input');
   const pass = inp ? inp.value : '';
   if (!pass || !_pending) { barErr('Enter your passphrase.'); return; }
-  const btn = document.getElementById('pass-bar-btn'); if (btn) btn.disabled = true;
+  const btn = document.getElementById('pass-bar-btn'); if (btn) { btn.disabled = true; btn.textContent = 'Decrypting…'; }
   barErr('');
   try {
     const payload = await decryptJSON(_pending, pass);      // {version, exportedAt, data}
@@ -73,12 +73,12 @@ async function submitImportPassphrase() {
     window.DB._d = mergeData(window.DB.load(), payload.data);
     window.DB.save();
     _pending = null; hideBar();
-    window.toast('Imported ✓', 6000, { label: 'Undo', fn: () => window.App.undoLast() });
+    window.toast('Imported', 6000, { label: 'Undo', fn: () => window.App.undoLast() });
     window.App.go(window.S.view || 'home');
   } catch (e) {
-    if (e && e.message === 'WRONG_PASSPHRASE') barErr('Incorrect passphrase — try again.');
-    else barErr('Could not import — the file may be corrupt.');
-  } finally { if (btn) btn.disabled = false; }
+    if (e && e.message === 'WRONG_PASSPHRASE') barErr('Incorrect passphrase — try again. Your own data is untouched.');
+    else barErr('Could not read that file — your own data is untouched.');
+  } finally { if (btn) { btn.disabled = false; btn.textContent = 'Decrypt & Import'; } }
 }
 
 if (typeof window !== 'undefined') {
