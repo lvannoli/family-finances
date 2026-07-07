@@ -301,6 +301,13 @@ input[type=file] { display: none; }
 .pv-desc { font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
 .pv-amt { font-weight: 700; flex-shrink: 0; }
 .pv-date { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+.pv-edit { display: flex; gap: 6px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.pv-edit:last-child { border-bottom: none; }
+.pv-edit input { border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 16px; font-family: inherit; background: #fff; color: var(--text); min-width: 0; }
+.pv-e-date { width: 130px; flex-shrink: 0; }
+.pv-e-desc { flex: 1; }
+.pv-e-amt { width: 90px; flex-shrink: 0; text-align: right; }
+.pv-e-del { flex-shrink: 0; width: 34px; height: 34px; border: none; background: var(--danger-bg); color: var(--danger-ink); border-radius: 8px; font-size: 18px; line-height: 1; cursor: pointer; }
 
 @media (min-width: 430px) {
   body { box-shadow: 0 0 60px rgba(0,0,0,.12); }
@@ -1387,6 +1394,7 @@ const App = {
     const upv = document.getElementById('upv');
     upv.innerHTML = '<div class="loading"><div class="spin"></div>Parsing statement…</div>';
     try {
+      S.pdfFile = file.name.toLowerCase().endsWith('.pdf') ? file : null;
       let txs, fmt = null;
       if (file.name.toLowerCase().endsWith('.pdf')) {
         txs = await PDF.parse(file);
@@ -1408,26 +1416,24 @@ const App = {
       }
 
       S.pendingTxs = txs;
-      const sample = txs.slice(0, 5);
+      const attr = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
       upv.innerHTML = `
         <div style="margin-top:16px">
-          <div class="sec-title" role="heading" aria-level="2">${txs.length} transactions found — preview</div>
-          ${fmt ? `<div style="font-size:12px;color:var(--text-2);margin-bottom:6px">Detected format: ${fmt}</div>` : ''}
-          <div class="card">
-            <div class="cb">
-              ${sample.map(t => `
-                <div class="pv">
-                  <div class="pv-row">
-                    <div class="pv-desc">${escHtml(t.desc)}</div>
-                    <div class="pv-amt" style="color:${t.amt >= 0 ? 'var(--up)' : 'var(--danger)'}">${fmtChg(t.amt)}</div>
-                  </div>
-                  <div class="pv-date">${fmtDate(t.date)}</div>
-                </div>`).join('')}
-              ${txs.length > 5 ? `<div style="text-align:center;padding:8px 0 0;font-size:12px;color:var(--text-2)">…and ${txs.length - 5} more</div>` : ''}
-            </div>
-          </div>
-          <button class="btn btn-p" style="margin-top:12px" onclick="App.commitUpload()">Import ${txs.length} Transactions</button>
-          <button class="btn btn-s" onclick="document.getElementById('fi').click()">Choose a Different File</button>
+          <div class="sec-title" role="heading" aria-level="2">${txs.length} transactions found — review &amp; edit</div>
+          ${fmt ? `<div style="font-size:12px;color:var(--text-2);margin-bottom:8px">Detected format: ${fmt}</div>` : ''}
+          ${S.pdfFile ? `<button class="btn btn-s" style="margin-bottom:10px" onclick="App.viewPdf()">View original PDF</button>` : ''}
+          <div style="font-size:12px;color:var(--text-2);margin-bottom:8px">Edit anything that looks wrong, or tap × to remove a row.</div>
+          <div id="pv-rows" class="card"><div class="cb">
+            ${txs.map((t, i) => `
+              <div class="pv-edit" data-i="${i}">
+                <input type="date" class="pv-e-date" value="${attr(t.date)}">
+                <input type="text" class="pv-e-desc" value="${attr(t.desc)}" placeholder="Description">
+                <input type="number" step="0.01" inputmode="decimal" class="pv-e-amt" value="${attr(t.amt)}">
+                <button class="pv-e-del" aria-label="Remove row" onclick="this.closest('.pv-edit').remove()">×</button>
+              </div>`).join('')}
+          </div></div>
+          <button class="btn btn-p" style="margin-top:12px" onclick="App.commitUpload()">Import</button>
+          <button class="btn btn-s" onclick="document.getElementById('fi').click()">Choose a different file</button>
         </div>`;
     } catch (err) {
       upv.innerHTML = `<div class="err-box">Error: ${escHtml(err.message)}</div>`;
@@ -1435,12 +1441,29 @@ const App = {
   },
 
   commitUpload() {
-    if (!S.pendingTxs) return;
-    const { added, skipped } = DB.addTransactions(S.accId, S.pendingTxs);
-    S.pendingTxs = null;
+    const rows = [...document.querySelectorAll('#pv-rows .pv-edit')];
+    const txs = rows.map(r => {
+      const base = (S.pendingTxs && S.pendingTxs[+r.dataset.i]) || {};
+      return {
+        ...base,
+        date: r.querySelector('.pv-e-date').value,
+        desc: r.querySelector('.pv-e-desc').value.trim(),
+        amt: parseFloat(r.querySelector('.pv-e-amt').value),
+      };
+    }).filter(t => t.date && !isNaN(t.amt));
+    if (!txs.length) { toast('Nothing to import'); return; }
+    const { added, skipped } = DB.addTransactions(S.accId, txs);
+    S.pendingTxs = null; S.pdfFile = null;
     this.closeModal('gen');
     toast(skipped ? `${added} imported, ${skipped} skipped as duplicates` : `${added} transactions imported`);
     this.go('account', { id: S.accId });
+  },
+
+  viewPdf() {
+    if (!S.pdfFile) return;
+    const u = URL.createObjectURL(S.pdfFile);
+    window.open(u, '_blank');
+    setTimeout(() => URL.revokeObjectURL(u), 60000);
   },
 
   // ── Account menu ─────────────────────────
