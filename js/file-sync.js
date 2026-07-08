@@ -16,11 +16,15 @@ export function mergeData(local, incoming) {
     }
     return [...map.values()];
   };
-  return { a: mergeArr(local && local.a, incoming && incoming.a), t: mergeArr(local && local.t, incoming && incoming.t) };
+  return {
+    a: mergeArr(local && local.a, incoming && incoming.a),
+    t: mergeArr(local && local.t, incoming && incoming.t),
+    p: mergeArr(local && local.p, incoming && incoming.p),
+  };
 }
 
 export function buildEnvelope(data, exportedAt) {
-  return { version: 1, exportedAt, data: { a: (data && data.a) || [], t: (data && data.t) || [] } };
+  return { version: 1, exportedAt, data: { a: (data && data.a) || [], t: (data && data.t) || [], p: (data && data.p) || [] } };
 }
 
 async function bundleText() {

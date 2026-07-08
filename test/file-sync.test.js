@@ -42,3 +42,17 @@ test('bundle round-trips through encrypt/serialize/decrypt', async () => {
   const back = await decryptJSON(JSON.parse(text), 'pass');
   assert.deepEqual(back, env);
 });
+test('mergeData: plans (p) merge by id, newest-wins, unioned', () => {
+  const local = { a: [], t: [], p: [{ id: 'p1', amt: 100, updatedAt: '2026-01-01' }, { id: 'p2', amt: 50, updatedAt: '2026-02-01' }] };
+  const incoming = { a: [], t: [], p: [{ id: 'p1', amt: 200, updatedAt: '2026-03-01' }, { id: 'p3', amt: 75, updatedAt: '2026-01-01' }] };
+  const m = mergeData(local, incoming);
+  assert.equal(m.p.find(p => p.id === 'p1').amt, 200); // incoming newer wins
+  assert.equal(m.p.find(p => p.id === 'p2').amt, 50);  // local-only kept
+  assert.equal(m.p.find(p => p.id === 'p3').amt, 75);  // incoming-only added
+  assert.equal(m.p.length, 3);
+});
+
+test('mergeData: missing p arrays default to empty (old data)', () => {
+  const m = mergeData({ a: [], t: [] }, { a: [], t: [] });
+  assert.deepEqual(m.p, []);
+});
