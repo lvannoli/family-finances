@@ -318,7 +318,8 @@ input[type=file] { display: none; }
 .pv-item-n { font-size: 12px; font-weight: 700; color: var(--text-2); letter-spacing: .02em; }
 .pv-field { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 10px; margin-top: 8px; }
 .pv-field > span { font-size: 12px; font-weight: 600; color: var(--text-2); }
-.pv-field input { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 16px; font-family: inherit; background: #fff; color: var(--text); min-width: 0; }
+.pv-field input { width: 100%; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 16px; font-family: inherit; background: #fff; color: var(--text); min-width: 0; }
+.pv-field input[type="date"] { text-align: left; }
 .pv-amt-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .pv-amt-cur { font-size: 15px; color: var(--text-2); }
 .pv-e-del { flex-shrink: 0; width: 30px; height: 30px; border: none; background: var(--danger-bg); color: var(--danger-ink); border-radius: 8px; font-size: 18px; line-height: 1; cursor: pointer; }
