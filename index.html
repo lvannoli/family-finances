@@ -1755,6 +1755,22 @@ const App = {
       });
   },
 
+  showHomeSeedHelp() {
+    document.getElementById('gen-title').textContent = 'Add to Home Screen — with your data';
+    document.getElementById('gen-body').innerHTML = `
+      <div style="font-size:14px;line-height:1.6;color:var(--text-2)">
+        <p>Your finances are now packed into this page. Next:</p>
+        <ol style="margin:10px 0 0 18px;padding:0">
+          <li>Tap the <strong>Share</strong> button <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px" aria-hidden="true"><path d="M12 3v11"/><path d="M8.5 6.5 12 3l3.5 3.5"/><path d="M7 11H6a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1"/></svg> at the bottom of Safari.</li>
+          <li>Choose <strong>Add to Home Screen</strong>.</li>
+          <li>Open the app from the new icon and enter your <strong>passphrase</strong> once — your data will be there.</li>
+        </ol>
+        <p style="margin-top:10px">Your data stays on this device and is encrypted inside the link — the passphrase is never included.</p>
+      </div>
+      <button class="btn btn-p" style="margin-top:14px" onclick="App.closeModal('gen')">Got it</button>`;
+    this.openModal('gen');
+  },
+
   async installApp() {
     if (deferredInstallPrompt) {
       deferredInstallPrompt.prompt();
@@ -1763,6 +1779,12 @@ const App = {
       return;
     }
     const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const alreadyInstalled = window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    const hasData = DB.accounts().length || DB.txAll().length;
+    if (isIOS && !alreadyInstalled && hasData && window.FileSync && window.FileSync.seedHomeInstall) {
+      window.FileSync.seedHomeInstall();   // packs data into the URL, then shows showHomeSeedHelp()
+      return;
+    }
     document.getElementById('gen-title').textContent = 'Add to Home Screen';
     document.getElementById('gen-body').innerHTML = `
       <div style="font-size:14px;line-height:1.6;color:var(--text-2)">
@@ -1794,12 +1816,20 @@ document.addEventListener('keydown', e => {
 function boot() {
   App.go('home');
   if (/^#d=/.test(location.hash || '')) {
-    localStorage.setItem('ff_onboarded', '1');
-    const tryImport = () => {
-      if (window.FileSync && window.FileSync.importFromHash) window.FileSync.importFromHash();
-      else setTimeout(tryImport, 40);
-    };
-    tryImport();
+    const standalone = window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    const hasData = !!(window.DB && (DB.accounts().length || DB.txAll().length));
+    if (standalone && hasData) {
+      // Installed app already has its own data — ignore the seed baked into the icon URL and open normally.
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    } else {
+      // Safari share link (any time) OR the installed app's first, empty launch → import/merge the seed.
+      localStorage.setItem('ff_onboarded', '1');
+      const tryImport = () => {
+        if (window.FileSync && window.FileSync.importFromHash) window.FileSync.importFromHash();
+        else setTimeout(tryImport, 40);
+      };
+      tryImport();
+    }
   } else if (!localStorage.getItem('ff_onboarded')) {
     App.startOnboarding();
   }

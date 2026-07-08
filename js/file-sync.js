@@ -103,6 +103,16 @@ function copyLink() {
     try { await navigator.clipboard.writeText(r.link); window.toast('Link copied — send it to your partner'); } catch { window.prompt('Copy this link:', r.link); }
   });
 }
+// Pack the current data into the page URL (encrypted #d= seed) so an iOS "Add to Home Screen"
+// captures it — the installed app then loads it on first launch. No server; encrypted; on-device.
+function seedHomeInstall() {
+  ensurePass(async () => {
+    const r = await buildShareLink(); if (!r) return;
+    if (r.tooBig) { window.toast('Too much data to include in the install — set it up with Import instead'); return; }
+    try { history.replaceState(null, '', r.link); } catch (e) {}
+    if (window.App && window.App.showHomeSeedHelp) window.App.showHomeSeedHelp();
+  });
+}
 
 let _pending = null;
 function showBar(msg) { const b = document.getElementById('pass-bar'); if (!b) return; const bd = document.getElementById('pass-backdrop'); if (bd) bd.style.display = ''; b.style.display = ''; const e = document.getElementById('pass-bar-err'); if (e) e.textContent = msg || ''; const i = document.getElementById('pass-bar-input'); if (i) { i.value = ''; i.focus?.(); } }
@@ -146,5 +156,5 @@ async function submitImportPassphrase() {
 }
 
 if (typeof window !== 'undefined') {
-  window.FileSync = { mergeData, buildEnvelope, shareBundle, copyBundle, downloadBundle, shareLink, copyLink, importFromHash, beginImport, submitImportPassphrase, hasPass: () => !!getPass(), setPass };
+  window.FileSync = { mergeData, buildEnvelope, shareBundle, copyBundle, downloadBundle, shareLink, copyLink, seedHomeInstall, importFromHash, beginImport, submitImportPassphrase, hasPass: () => !!getPass(), setPass };
 }
