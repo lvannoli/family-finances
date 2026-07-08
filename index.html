@@ -717,10 +717,14 @@ function buildAccountChartData(accId) {
     bal: m.bal
   }));
 
-  // If no balance column, reconstruct from initial
+  // If no per-month balance column, reconstruct backward from the CURRENT balance so the
+  // series always ends at the real balance (avoids double-counting when the account's
+  // initial balance already includes the imported transactions).
   if (histBals.every(h => h.bal == null)) {
-    let run = acc?.init || 0;
-    histBals = monthly.map(([k,m]) => { run += m.net; return { lbl: fmtShort(k+'-01'), bal: Math.round(run*100)/100 }; });
+    const bals = new Array(monthly.length);
+    let run = curBal;
+    for (let i = monthly.length - 1; i >= 0; i--) { bals[i] = Math.round(run * 100) / 100; run -= monthly[i][1].net; }
+    histBals = monthly.map(([k], i) => ({ lbl: fmtShort(k + '-01'), bal: bals[i] }));
   }
 
   // Take last 8 months
