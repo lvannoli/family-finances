@@ -1463,12 +1463,50 @@ const App = {
     this.openModal('add-account');
   },
 
-  obImport() {
-    localStorage.setItem('ff_onboarded', '1');
-    document.getElementById('onboarding').style.display = 'none';
-    this.go('home');
-    this.importPrompt();
+  startInstalledImport() {
+    const ob = document.getElementById('onboarding');
+    const dots = document.getElementById('ob-dots'); if (dots) dots.innerHTML = '';
+    document.getElementById('ob-body').innerHTML = `
+      <div class="ob-ic">${icon('import', 34)}</div>
+      <div class="ob-title">Import your finances</div>
+      <div class="ob-text">This app doesn't have your data yet — iPhone keeps the installed app separate from Safari. On your other device open <strong>Settings → Export Data</strong>, then upload that file here.</div>
+      <div class="ob-actions">
+        <button class="btn btn-p" onclick="App.uploadDataFile()">Upload data file</button>
+        <button class="ob-back" onclick="App.startOnboarding()">Start fresh instead</button>
+      </div>`;
+    ob.style.display = 'flex';
   },
+  uploadDataFile() { document.getElementById('data-imp-file').click(); },
+  async importAnyFile(file) {
+    if (!file) return;
+    let text, obj;
+    try { text = await file.text(); obj = JSON.parse(text); }
+    catch { toast('Could not read that file'); return; }
+    const finish = () => {
+      localStorage.setItem('ff_onboarded', '1');
+      const ob = document.getElementById('onboarding'); if (ob) ob.style.display = 'none';
+      this.closeModal('gen');
+    };
+    if (obj && obj.ct && obj.salt && obj.iv) {
+      // Encrypted bundle → passphrase bar handles decrypt + merge.
+      finish();
+      window.FileSync.beginImport(text);
+      return;
+    }
+    if (obj && Array.isArray(obj.a)) {
+      // Plaintext backup ({a,t,p}) → merge directly, no passphrase.
+      this.snapshot();
+      window.DB._d = window.FileSync.mergeData(DB.load(), obj);
+      DB.save();
+      finish();
+      toast('Data imported', 6000, { label: 'Undo', fn: () => this.undoLast() });
+      this.go('home');
+      return;
+    }
+    toast("That file isn't a Family Finances export");
+  },
+
+  obImport() { this.uploadDataFile(); },
 
   openModal(name) {
     if (name === 'add-account' && !S.editId) {
@@ -1815,14 +1853,14 @@ document.addEventListener('keydown', e => {
 });
 function boot() {
   App.go('home');
+  const standalone = window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   if (/^#d=/.test(location.hash || '')) {
-    const standalone = window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
     const hasData = !!(window.DB && (DB.accounts().length || DB.txAll().length));
     if (standalone && hasData) {
       // Installed app already has its own data — ignore the seed baked into the icon URL and open normally.
       try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
     } else {
-      // Safari share link (any time) OR the installed app's first, empty launch → import/merge the seed.
+      // Safari share link (any time) OR the installed app's first, empty launch via link → import/merge.
       localStorage.setItem('ff_onboarded', '1');
       const tryImport = () => {
         if (window.FileSync && window.FileSync.importFromHash) window.FileSync.importFromHash();
@@ -1831,7 +1869,10 @@ function boot() {
       tryImport();
     }
   } else if (!localStorage.getItem('ff_onboarded')) {
-    App.startOnboarding();
+    // No data yet: in the installed app this is almost always a fresh device that needs to import
+    // (iOS keeps installed-app storage separate from Safari); in Safari it's a brand-new user.
+    if (standalone) App.startInstalledImport();
+    else App.startOnboarding();
   }
 }
 if (window.Finance) boot();
@@ -1845,6 +1886,7 @@ else window.addEventListener('finance-ready', boot, { once: true });
   <div id="pass-bar-err" style="font-size:12px;color:var(--danger);min-height:16px;margin:6px 0 8px"></div>
   <button id="pass-bar-btn" class="btn btn-p" onclick="window.FileSync.submitImportPassphrase()">Decrypt &amp; Import</button>
 </div>
+<input type="file" id="data-imp-file" accept=".json,application/json,text/plain" style="display:none" onchange="App.importAnyFile(this.files[0]); this.value='';">
 <script type="module" src="js/file-sync.js"></script>
 </body>
 </html>
