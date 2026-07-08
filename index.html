@@ -463,9 +463,10 @@ const DB = {
 
   load() {
     if (!this._d) {
-      try { this._d = JSON.parse(localStorage.getItem(this.KEY)) || {a:[],t:[]}; }
-      catch(e) { this._d = {a:[],t:[]}; }
+      try { this._d = JSON.parse(localStorage.getItem(this.KEY)) || {a:[],t:[],p:[]}; }
+      catch(e) { this._d = {a:[],t:[],p:[]}; }
     }
+    if (!this._d.p) this._d.p = [];
     return this._d;
   },
 
@@ -474,6 +475,8 @@ const DB = {
   accounts() { return this.load().a.filter(a => !a.deleted); },
   txAll()    { return this.load().t.filter(t => !t.deleted); },
   txFor(id)  { return this.load().t.filter(t => t.aid === id && !t.deleted); },
+  plans()      { return this.load().p.filter(p => !p.deleted); },
+  plansFor(id) { return this.load().p.filter(p => p.aid === id && !p.deleted); },
 
   addAccount(acc) {
     acc.id = 'a' + Date.now() + Math.random().toString(36).slice(2,6);
@@ -494,11 +497,26 @@ const DB = {
     const now = new Date().toISOString();
     for (const a of d.a) if (a.id === id) { a.deleted = true; a.updatedAt = now; }
     for (const t of d.t) if (t.aid === id) { t.deleted = true; t.updatedAt = now; }
+    for (const p of d.p) if (p.aid === id) { p.deleted = true; p.updatedAt = now; }
     this.save();
   },
 
   deleteTransaction(id) { const d = this.load(); const now = new Date().toISOString(); for (const t of d.t) if (t.id === id) { t.deleted = true; t.updatedAt = now; } this.save(); },
   updateTransaction(id, patch) { const d = this.load(); const i = d.t.findIndex(t => t.id === id); if (i >= 0) { Object.assign(d.t[i], patch, { updatedAt: new Date().toISOString() }); this.save(); } },
+
+  addPlan(plan) {
+    plan.id = 'p' + Date.now() + Math.random().toString(36).slice(2,6);
+    plan.updatedAt = new Date().toISOString();
+    this.load().p.push(plan);
+    this.save();
+    return plan;
+  },
+  updatePlan(id, patch) {
+    const d = this.load();
+    const i = d.p.findIndex(p => p.id === id);
+    if (i >= 0) { Object.assign(d.p[i], patch, { updatedAt: new Date().toISOString() }); this.save(); }
+  },
+  deletePlan(id) { const d = this.load(); const now = new Date().toISOString(); for (const p of d.p) if (p.id === id) { p.deleted = true; p.updatedAt = now; } this.save(); },
 
   addTransactions(aid, txs) {
     const d = this.load();
