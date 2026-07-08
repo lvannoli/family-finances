@@ -55,7 +55,7 @@ export function avgChange(txs, n = 6) {
   return mo.reduce((s, [, m]) => s + m.net, 0) / mo.length;
 }
 
-export function projectAccount({ balance, rate, monthlyDeposit }, txs = [], months = 12, now = new Date()) {
+export function projectAccount({ balance, rate, monthlyDeposit, plans = [] }, txs = [], months = 12, now = new Date()) {
   const hasRate = rate != null && rate !== '' && !isNaN(parseFloat(rate));
   const hist = monthly(txs);
   const mode = hasRate ? 'rate' : (hist.length >= 2 ? 'history' : 'flat');
@@ -66,13 +66,17 @@ export function projectAccount({ balance, rate, monthlyDeposit }, txs = [], mont
   let bal = balance;
   return Array.from({ length: months }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     let chg;
     if (mode === 'rate') { chg = bal * monthlyRate + deposit; bal = bal + chg; }
     else if (mode === 'history') { chg = avg; bal = bal + avg; }
     else { chg = 0; }
+    // Planned one-off contributions/withdrawals landing in this month (signed amounts).
+    const planned = (plans || []).filter(p => p && !p.deleted && p.ym === key).reduce((s, p) => s + (Number(p.amt) || 0), 0);
+    if (planned) { chg += planned; bal += planned; }
     return {
       lbl: d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }),
-      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      key,
       bal: Math.round(bal * 100) / 100,
       chg: Math.round(chg * 100) / 100,
     };

@@ -101,6 +101,29 @@ test('projectAccount: no rate and <2 months history → flat', () => {
   assert.equal(proj[0].chg, 0);
 });
 
+test('projectAccount: a planned one-off contribution lands in its month', () => {
+  const now = new Date('2026-01-15T12:00:00');
+  const proj = projectAccount({ balance: 1000, plans: [{ ym: '2026-03', amt: 500 }] }, [], 4, now);
+  assert.equal(proj[0].bal, 1000);   // Feb 2026 — no plan
+  assert.equal(proj[1].bal, 1500);   // Mar 2026 — +500 step
+  assert.equal(proj[1].chg, 500);
+  assert.equal(proj[2].bal, 1500);   // Apr 2026 — stays
+  assert.equal(proj[3].bal, 1500);   // May 2026
+});
+
+test('projectAccount: a planned withdrawal reduces the balance in its month', () => {
+  const now = new Date('2026-01-15T12:00:00');
+  const proj = projectAccount({ balance: 1000, plans: [{ ym: '2026-02', amt: -200 }] }, [], 2, now);
+  assert.equal(proj[0].bal, 800);    // Feb 2026 — −200
+  assert.equal(proj[0].chg, -200);
+});
+
+test('projectAccount: a soft-deleted plan is ignored', () => {
+  const now = new Date('2026-01-15T12:00:00');
+  const proj = projectAccount({ balance: 1000, plans: [{ ym: '2026-02', amt: 500, deleted: true }] }, [], 2, now);
+  assert.equal(proj[0].bal, 1000);
+});
+
 test('projectTotal sums per-account projections month by month', () => {
   const now = new Date(2026, 0, 1);
   const total = projectTotal([
