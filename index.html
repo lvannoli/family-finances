@@ -1451,7 +1451,8 @@ const App = {
         <div class="ob-actions">
           <button class="btn btn-p" onclick="App.obNext()">Continue</button>
           ${this.obStep > 0 ? `<button class="ob-back" onclick="App.obBack()">Back</button>` : ''}
-        </div>`}`;
+        </div>`}
+      <button class="ob-back" style="color:var(--primary-mid)" onclick="App.obImport()">I already have data — import it</button>`;
     document.querySelector('#ob-body .btn-p')?.focus();
   },
   obNext() { if (this.obStep < OB_STEPS.length - 1) { this.obStep++; this.obRender(); } },
@@ -1460,6 +1461,13 @@ const App = {
     localStorage.setItem('ff_onboarded', '1');
     document.getElementById('onboarding').style.display = 'none';
     this.openModal('add-account');
+  },
+
+  obImport() {
+    localStorage.setItem('ff_onboarded', '1');
+    document.getElementById('onboarding').style.display = 'none';
+    this.go('home');
+    this.importPrompt();
   },
 
   openModal(name) {
