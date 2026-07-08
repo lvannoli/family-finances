@@ -1605,7 +1605,11 @@ function boot() {
   App.go('home');
   if (/^#d=/.test(location.hash || '')) {
     localStorage.setItem('ff_onboarded', '1');
-    window.FileSync.importFromHash();
+    const tryImport = () => {
+      if (window.FileSync && window.FileSync.importFromHash) window.FileSync.importFromHash();
+      else setTimeout(tryImport, 40);
+    };
+    tryImport();
   } else if (!localStorage.getItem('ff_onboarded')) {
     App.startOnboarding();
   }
