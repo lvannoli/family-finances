@@ -760,7 +760,7 @@ function buildAccountChartData(accId) {
   const curBal = DB.balance(accId);
   const acc = DB.accounts().find(a => a.id === accId);
   const c = typeColor(acc?.type).ink;
-  const proj = window.Finance.projectAccount({ balance: curBal, rate: acc?.rate, monthlyDeposit: acc?.monthlyDeposit }, txs, 6);
+  const proj = window.Finance.projectAccount({ balance: curBal, rate: acc?.rate, monthlyDeposit: acc?.monthlyDeposit, plans: DB.plansFor(accId) }, txs, 6);
 
   // Build historical balance series
   let histBals = monthly.map(([k,m]) => ({
@@ -817,7 +817,7 @@ function buildForecastChartData() {
   let monthLabels = null;
   const entries = accounts.map(a => {
     const bal = DB.balance(a.id);
-    const proj = window.Finance.projectAccount({ balance: bal, rate: a.rate, monthlyDeposit: a.monthlyDeposit }, DB.txFor(a.id), N);
+    const proj = window.Finance.projectAccount({ balance: bal, rate: a.rate, monthlyDeposit: a.monthlyDeposit, plans: DB.plansFor(a.id) }, DB.txFor(a.id), N);
     if (!monthLabels) monthLabels = proj.map(p => p.lbl);
     return { id: a.id, type: a.type, name: a.name, series: [bal, ...proj.map(p => p.bal)] };
   });
@@ -1035,7 +1035,7 @@ function renderForecast() {
   const totalBal = accounts.reduce((s,a) => s + DB.balance(a.id), 0);
   const allTxs = DB.txAll();
   const proj = window.Finance.projectTotal(accounts.map(a => ({
-    balance: DB.balance(a.id), rate: a.rate, monthlyDeposit: a.monthlyDeposit, txs: DB.txFor(a.id),
+    balance: DB.balance(a.id), rate: a.rate, monthlyDeposit: a.monthlyDeposit, txs: DB.txFor(a.id), plans: DB.plansFor(a.id),
   })), 12);
   const avg = proj[0]?.chg ?? 0;
   const hasForecast = accounts.some(a => a.rate != null && a.rate !== '') || allTxs.length >= 2;
@@ -1051,7 +1051,7 @@ function renderForecast() {
   const perAcc = accounts.map(a => {
     const txs = DB.txFor(a.id);
     const aBal = DB.balance(a.id);
-    const aProj = window.Finance.projectAccount({ balance: aBal, rate: a.rate, monthlyDeposit: a.monthlyDeposit }, txs, 12);
+    const aProj = window.Finance.projectAccount({ balance: aBal, rate: a.rate, monthlyDeposit: a.monthlyDeposit, plans: DB.plansFor(a.id) }, txs, 12);
     const aAvg = aProj[0]?.chg ?? 0;
     const aProj12 = aProj[11]?.bal ?? aBal;
     const t = ty(a.type);
@@ -1095,6 +1095,27 @@ function renderForecast() {
       </div>
     </div>`;
 
+  const plansList = DB.plans().slice().sort((x, y) => (x.ym || '').localeCompare(y.ym || ''));
+  const planRows = plansList.map(p => {
+    const a = accounts.find(ac => ac.id === p.aid);
+    const mLbl = p.ym ? new Date(p.ym + '-01T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '';
+    return `
+      <div class="card" style="margin-bottom:10px;cursor:pointer" role="button" tabindex="0" onclick="App.planMenu('${p.id}')">
+        <div class="cb" style="display:flex;align-items:center;gap:10px">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:15px">${escHtml(a ? a.name : 'Unknown account')}</div>
+            <div style="font-size:12px;color:var(--text-2)">${mLbl}${p.note ? ' · ' + escHtml(p.note) : ''}</div>
+          </div>
+          <div style="font-weight:600;font-size:16px;color:${p.amt >= 0 ? 'var(--up)' : 'var(--danger)'}">${fmtChg(p.amt)}</div>
+        </div>
+      </div>`;
+  }).join('');
+  const plannedSection = `
+    <div class="sec-title" role="heading" aria-level="2">Planned deposits</div>
+    <div style="font-size:12px;color:var(--text-2);margin:-4px 0 10px">Hypothetical one-off amounts added to the forecast — they don't change your real balances.</div>
+    ${plansList.length ? planRows : '<div class="card"><div class="cb" style="color:var(--text-2);font-size:14px">No planned deposits yet.</div></div>'}
+    ${accounts.length ? '<button class="btn btn-s" onclick="App.addPlan()">Add planned deposit</button>' : ''}`;
+
   return `
     <div class="hd"><h1>Forecast</h1></div>
     <div class="view">
@@ -1108,6 +1129,8 @@ function renderForecast() {
       </div>
 
       ${accounts.length ? '<div class="sec-title" role="heading" aria-level="2">Per Account (12 months)</div><div style="font-size:12px;color:var(--text-2);margin:-4px 0 10px">Tap a fund to spotlight it on the chart above.</div>' + perAcc : ''}
+
+      ${plannedSection}
 
       <div class="sec-title" role="heading" aria-level="2">Month by Month</div>
       <div class="card">
@@ -1297,6 +1320,66 @@ const App = {
   toggleFcLine(id) {
     if (S.fcFocus.has(id)) S.fcFocus.delete(id); else S.fcFocus.add(id);
     this.go('forecast');
+  },
+
+  addPlan() {
+    if (!DB.accounts().length) { toast('Add an account first'); return; }
+    this._planForm(null);
+  },
+  planMenu(id) {
+    const p = DB.plans().find(x => x.id === id);
+    if (p) this._planForm(p);
+  },
+  _planForm(plan) {
+    const accs = DB.accounts();
+    const isEdit = !!plan;
+    const sel = plan ? plan.aid : accs[0].id;
+    const day = plan && plan.ym ? plan.ym + '-01' : '';
+    let wd = plan ? (Number(plan.amt) < 0) : false;
+    const mag = plan ? Math.abs(Number(plan.amt) || 0) : '';
+    document.getElementById('gen-title').textContent = isEdit ? 'Planned deposit' : 'Add planned deposit';
+    document.getElementById('gen-body').innerHTML = `
+      <label class="fl">Account</label>
+      <select class="fs" id="pl-acc">${accs.map(a => `<option value="${a.id}" ${a.id === sel ? 'selected' : ''}>${escHtml(a.name)}</option>`).join('')}</select>
+      <label class="fl" style="margin-top:8px">Month</label>
+      <input class="fi" id="pl-date" type="date" value="${day}">
+      <label class="fl" style="margin-top:8px">Type</label>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="btn btn-s" id="pl-dep" style="flex:1">Deposit</button>
+        <button type="button" class="btn btn-s" id="pl-wd" style="flex:1">Withdrawal</button>
+      </div>
+      <label class="fl" style="margin-top:8px">Amount (£)</label>
+      <input class="fi" id="pl-amt" type="number" step="0.01" inputmode="decimal" value="${mag}">
+      <label class="fl" style="margin-top:8px">Note (optional)</label>
+      <input class="fi" id="pl-note" value="${plan ? escHtml(plan.note || '') : ''}" placeholder="e.g. Bonus, house deposit">
+      <button class="btn btn-p" id="pl-save" style="margin-top:12px">${isEdit ? 'Save changes' : 'Add'}</button>
+      ${isEdit ? '<button class="btn" id="pl-del" style="background:var(--danger);color:#fff">Delete</button>' : ''}
+      <button class="btn btn-s" onclick="App.closeModal('gen')">Cancel</button>`;
+    this.openModal('gen');
+    const dep = document.getElementById('pl-dep'), wdb = document.getElementById('pl-wd');
+    const paint = () => { dep.style.opacity = wd ? '.45' : '1'; wdb.style.opacity = wd ? '1' : '.45'; dep.setAttribute('aria-pressed', String(!wd)); wdb.setAttribute('aria-pressed', String(wd)); };
+    dep.onclick = () => { wd = false; paint(); };
+    wdb.onclick = () => { wd = true; paint(); };
+    paint();
+    document.getElementById('pl-save').onclick = () => {
+      const aid = document.getElementById('pl-acc').value;
+      const dv = document.getElementById('pl-date').value;
+      const mgn = parseFloat(document.getElementById('pl-amt').value);
+      const note = document.getElementById('pl-note').value.trim();
+      if (!aid || !dv || isNaN(mgn) || mgn <= 0) { toast('Pick an account, month and amount'); return; }
+      const amt = Math.round((wd ? -mgn : mgn) * 100) / 100;
+      const ym = dv.slice(0, 7);
+      if (isEdit) DB.updatePlan(plan.id, { aid, ym, amt, note });
+      else DB.addPlan({ aid, ym, amt, note });
+      this.closeModal('gen'); toast(isEdit ? 'Plan updated' : 'Planned deposit added'); this.go('forecast');
+    };
+    if (isEdit) document.getElementById('pl-del').onclick = () => {
+      this.snapshot();
+      DB.deletePlan(plan.id);
+      this.closeModal('gen');
+      toast('Plan deleted', 6000, { label: 'Undo', fn: () => this.undoLast() });
+      this.go('forecast');
+    };
   },
 
   txMenu(id) {
