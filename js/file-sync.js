@@ -88,7 +88,7 @@ function shareLink() {
   ensurePass(async () => {
     const r = await buildShareLink(); if (!r) return;
     if (r.tooBig) { window.toast('Too many transactions for a link — downloaded a file instead'); downloadText(r.text); return; }
-    if (navigator.share) { try { await navigator.share({ title: 'Family Finances', text: 'Open our shared finances:', url: r.link }); } catch (e) { /* cancelled */ } }
+    if (navigator.share) { try { await navigator.share({ url: r.link }); } catch (e) { /* cancelled */ } }
     else { try { await navigator.clipboard.writeText(r.link); window.toast('Link copied — send it to your partner'); } catch { window.prompt('Copy this link:', r.link); } }
   });
 }
