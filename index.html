@@ -192,6 +192,7 @@ body {
   font-size: 15px; font-family: inherit; color: var(--text);
   background: #fff; outline: none; transition: border-color .18s;
 }
+.fi[type="date"] { -webkit-appearance: none; appearance: none; text-align: left; }
 .fi:focus { border-color: var(--primary-mid); }
 :focus-visible { outline: 2px solid var(--primary-mid); outline-offset: 2px; border-radius: 6px; }
 .fi:focus-visible, .fs:focus-visible { outline: 2px solid var(--primary-mid); outline-offset: 1px; }
@@ -320,8 +321,9 @@ input[type=file] { display: none; }
 .pv-field > span { font-size: 12px; font-weight: 600; color: var(--text-2); }
 .pv-field input { width: 100%; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 16px; font-family: inherit; background: #fff; color: var(--text); min-width: 0; }
 .pv-field input[type="date"] { text-align: left; }
-.pv-amt-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.pv-amt-cur { font-size: 15px; color: var(--text-2); }
+.pv-amt-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: #fff; }
+.pv-amt-wrap input { border: none; border-radius: 0; padding: 0; background: transparent; }
+.pv-amt-cur { font-size: 16px; color: var(--text-2); }
 .pv-e-del { flex-shrink: 0; width: 30px; height: 30px; border: none; background: var(--danger-bg); color: var(--danger-ink); border-radius: 8px; font-size: 18px; line-height: 1; cursor: pointer; }
 
 @media (min-width: 430px) {
@@ -1284,7 +1286,9 @@ const App = {
     if (!tx) return;
     document.getElementById('gen-title').textContent = 'Transaction';
     document.getElementById('gen-body').innerHTML = `
-      <label class="fl">Description</label>
+      <label class="fl">Date</label>
+      <input class="fi" id="tx-date" type="date" value="${escHtml(tx.date || '')}">
+      <label class="fl" style="margin-top:8px">Description</label>
       <input class="fi" id="tx-desc" value="${escHtml(tx.desc)}">
       <label class="fl" style="margin-top:8px">Amount (£)</label>
       <input class="fi" id="tx-amt" type="number" step="0.01" value="${tx.amt}">
@@ -1293,10 +1297,11 @@ const App = {
       <button class="btn btn-s" onclick="App.closeModal('gen')">Cancel</button>`;
     this.openModal('gen');
     document.getElementById('tx-save').onclick = () => {
+      const date = document.getElementById('tx-date').value;
       const desc = document.getElementById('tx-desc').value.trim();
       const amt = parseFloat(document.getElementById('tx-amt').value);
-      if (!desc || isNaN(amt)) return;
-      DB.updateTransaction(id, { desc, amt: Math.round(amt*100)/100 });
+      if (!date || !desc || isNaN(amt)) return;
+      DB.updateTransaction(id, { date, desc, amt: Math.round(amt*100)/100 });
       this.closeModal('gen'); toast('Transaction updated'); this.go('account', { id: tx.aid });
     };
     document.getElementById('tx-del').onclick = () => {
