@@ -1799,6 +1799,7 @@ function boot() {
 if (window.Finance) boot();
 else window.addEventListener('finance-ready', boot, { once: true });
 </script>
+<div id="pass-backdrop" style="display:none;position:fixed;inset:0;z-index:199;background:rgba(241,245,249,.6);-webkit-backdrop-filter:blur(18px) saturate(1.1);backdrop-filter:blur(18px) saturate(1.1)"></div>
 <div id="pass-bar" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:430px;z-index:200;background:var(--card);border-top:1px solid var(--border);box-shadow:0 -4px 20px rgba(0,0,0,.18);padding:16px calc(16px + env(safe-area-inset-right,0)) calc(16px + env(safe-area-inset-bottom,0)) calc(16px + env(safe-area-inset-left,0))">
   <div style="font-size:16px;font-weight:700;margin-bottom:6px">Enter the passphrase</div>
   <div style="font-size:12px;color:var(--text-2);margin-bottom:10px">Enter the passphrase for this data file to decrypt and merge it into your finances.</div>

@@ -105,8 +105,8 @@ function copyLink() {
 }
 
 let _pending = null;
-function showBar(msg) { const b = document.getElementById('pass-bar'); if (!b) return; b.style.display = ''; const e = document.getElementById('pass-bar-err'); if (e) e.textContent = msg || ''; const i = document.getElementById('pass-bar-input'); if (i) { i.value = ''; i.focus?.(); } }
-function hideBar() { const b = document.getElementById('pass-bar'); if (b) b.style.display = 'none'; }
+function showBar(msg) { const b = document.getElementById('pass-bar'); if (!b) return; const bd = document.getElementById('pass-backdrop'); if (bd) bd.style.display = ''; b.style.display = ''; const e = document.getElementById('pass-bar-err'); if (e) e.textContent = msg || ''; const i = document.getElementById('pass-bar-input'); if (i) { i.value = ''; i.focus?.(); } }
+function hideBar() { const b = document.getElementById('pass-bar'); if (b) b.style.display = 'none'; const bd = document.getElementById('pass-backdrop'); if (bd) bd.style.display = 'none'; }
 function barErr(m) { const e = document.getElementById('pass-bar-err'); if (e) e.textContent = m || ''; }
 
 function beginImport(text) {
