@@ -310,13 +310,18 @@ input[type=file] { display: none; }
 .pv-desc { font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
 .pv-amt { font-weight: 700; flex-shrink: 0; }
 .pv-date { font-size: 11px; color: var(--text-2); margin-top: 2px; }
-.pv-edit { display: flex; gap: 6px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); }
-.pv-edit:last-child { border-bottom: none; }
-.pv-edit input { border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 16px; font-family: inherit; background: #fff; color: var(--text); min-width: 0; }
-.pv-e-date { width: 130px; flex-shrink: 0; }
-.pv-e-desc { flex: 1; }
-.pv-e-amt { width: 90px; flex-shrink: 0; text-align: right; }
-.pv-e-del { flex-shrink: 0; width: 34px; height: 34px; border: none; background: var(--danger-bg); color: var(--danger-ink); border-radius: 8px; font-size: 18px; line-height: 1; cursor: pointer; }
+.pv-summary { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: var(--text); background: #f1f5f9; border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+.pv-summary .up { color: var(--up); font-weight: 600; }
+.pv-summary .dn { color: var(--danger); font-weight: 600; }
+.pv-item { border: 1px solid var(--border); border-radius: 14px; padding: 10px 14px 14px; margin-bottom: 12px; background: #fff; }
+.pv-item-h { display: flex; justify-content: space-between; align-items: center; }
+.pv-item-n { font-size: 12px; font-weight: 700; color: var(--text-2); letter-spacing: .02em; }
+.pv-field { display: grid; grid-template-columns: 84px 1fr; align-items: center; gap: 10px; margin-top: 8px; }
+.pv-field > span { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.pv-field input { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 16px; font-family: inherit; background: #fff; color: var(--text); min-width: 0; }
+.pv-amt-wrap { display: flex; align-items: center; gap: 6px; }
+.pv-amt-cur { font-size: 15px; color: var(--text-2); }
+.pv-e-del { flex-shrink: 0; width: 30px; height: 30px; border: none; background: var(--danger-bg); color: var(--danger-ink); border-radius: 8px; font-size: 18px; line-height: 1; cursor: pointer; }
 
 @media (min-width: 430px) {
   body { box-shadow: 0 0 60px rgba(0,0,0,.12); }
@@ -1471,22 +1476,38 @@ const App = {
 
       S.pendingTxs = txs;
       const attr = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      const amts = txs.map(t => parseFloat(t.amt)).filter(n => !isNaN(n));
+      const totIn = amts.filter(n => n > 0).reduce((s, n) => s + n, 0);
+      const totOut = amts.filter(n => n < 0).reduce((s, n) => s + Math.abs(n), 0);
+      const ds = txs.map(t => t.date).filter(Boolean).sort();
+      const range = ds.length ? (ds[0] === ds[ds.length - 1] ? fmtDate(ds[0]) : `${fmtDate(ds[0])} → ${fmtDate(ds[ds.length - 1])}`) : '';
       upv.innerHTML = `
         <div style="margin-top:16px">
-          <div class="sec-title" role="heading" aria-level="2">${txs.length} transactions found — review &amp; edit</div>
-          ${fmt ? `<div style="font-size:12px;color:var(--text-2);margin-bottom:8px">Detected format: ${fmt}</div>` : ''}
+          <div class="sec-title" role="heading" aria-level="2">Review transactions</div>
+          <div class="pv-summary">
+            <div><b>${txs.length}</b> transaction${txs.length === 1 ? '' : 's'}${fmt ? ` · ${attr(fmt)}` : ''}</div>
+            ${range ? `<div>${range}</div>` : ''}
+            <div>In <span class="up">+${gbp(totIn)}</span> · Out <span class="dn">−${gbp(totOut)}</span></div>
+          </div>
           ${S.pdfFile ? `<button class="btn btn-s" style="margin-bottom:10px" onclick="App.viewPdf()">View original PDF</button>` : ''}
-          <div style="font-size:12px;color:var(--text-2);margin-bottom:8px">Edit anything that looks wrong, or tap × to remove a row.</div>
-          <div id="pv-rows" class="card"><div class="cb">
+          <div style="font-size:12px;color:var(--text-2);margin-bottom:12px">Check each transaction below — edit any field, or remove one with ×.</div>
+          <div id="pv-rows">
             ${txs.map((t, i) => `
-              <div class="pv-edit" data-i="${i}">
-                <input type="date" class="pv-e-date" value="${attr(t.date)}">
-                <input type="text" class="pv-e-desc" value="${attr(t.desc)}" placeholder="Description">
-                <input type="number" step="0.01" inputmode="decimal" class="pv-e-amt" value="${attr(t.amt)}">
-                <button class="pv-e-del" aria-label="Remove row" onclick="this.closest('.pv-edit').remove()">×</button>
+              <div class="pv-item" data-i="${i}">
+                <div class="pv-item-h">
+                  <span class="pv-item-n">#${i + 1}</span>
+                  <button class="pv-e-del" aria-label="Remove transaction ${i + 1}" onclick="this.closest('.pv-item').remove()">×</button>
+                </div>
+                <label class="pv-field"><span>Date</span>
+                  <input type="date" class="pv-e-date" value="${attr(t.date)}"></label>
+                <label class="pv-field"><span>Description</span>
+                  <input type="text" class="pv-e-desc" value="${attr(t.desc)}" placeholder="e.g. Salary, Transfer"></label>
+                <label class="pv-field"><span>Amount</span>
+                  <div class="pv-amt-wrap"><span class="pv-amt-cur">£</span>
+                    <input type="number" step="0.01" inputmode="decimal" class="pv-e-amt" value="${attr(t.amt)}"></div></label>
               </div>`).join('')}
-          </div></div>
-          <button class="btn btn-p" style="margin-top:12px" onclick="App.commitUpload()">Import</button>
+          </div>
+          <button class="btn btn-p" style="margin-top:4px" onclick="App.commitUpload()">Import ${txs.length} transaction${txs.length === 1 ? '' : 's'}</button>
           <button class="btn btn-s" onclick="document.getElementById('fi').click()">Choose a different file</button>
         </div>`;
     } catch (err) {
@@ -1495,7 +1516,7 @@ const App = {
   },
 
   commitUpload() {
-    const rows = [...document.querySelectorAll('#pv-rows .pv-edit')];
+    const rows = [...document.querySelectorAll('#pv-rows .pv-item')];
     const txs = rows.map(r => {
       const base = (S.pendingTxs && S.pendingTxs[+r.dataset.i]) || {};
       return {
