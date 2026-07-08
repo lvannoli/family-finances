@@ -261,7 +261,7 @@ input[type=file] { display: none; }
 
 /* ── FORECAST LINE TOGGLE ────────────────── */
 .fc-line-card { cursor: pointer; transition: box-shadow var(--dur) ease, opacity var(--dur) ease; -webkit-tap-highlight-color: transparent; }
-.fc-line-card:not(.fc-on) { opacity: .7; }
+.fc-line-card.fc-dim { opacity: .45; }
 .fc-line-card.fc-on { box-shadow: 0 0 0 2px var(--primary-mid) inset; }
 .fc-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 2px solid var(--dot); background: transparent; }
 .fc-line-card.fc-on .fc-dot { background: var(--dot); }
@@ -631,7 +631,7 @@ const PDF = {
 /* ═══════════════════════════════════════════
    STATE & HELPERS
 ═══════════════════════════════════════════ */
-const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: null, txExpanded: false, fcExpanded: false, fcMonthly: false, fcLines: new Set() };
+const S = { view: 'home', accId: null, pendingTxs: null, charts: {}, editId: null, txExpanded: false, fcExpanded: false, fcMonthly: false, fcFocus: new Set() };
 
 const OB_STEPS = [
   { icon: 'home',   title: 'Welcome to Family Finances', text: "A private place for your UK savings, ISAs and LISAs. Everything stays on this device — nothing is ever sent to a server." },
@@ -693,6 +693,31 @@ function lineChart(canvasId, labels, datasets, color) {
           grid: { color: '#eef2f6' },
           ticks: { callback: v => v >= 1000 ? '£' + (v/1000).toFixed(1) + 'k' : '£' + v, font: { size: 10 }, color: '#475569' }
         }
+      }
+    }
+  });
+}
+
+function mixedChart(canvasId, labels, datasets) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  if (S.charts[canvasId]) { try { S.charts[canvasId].destroy(); } catch (e) {} }
+  S.charts[canvasId] = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          filter: it => it.dataset.type !== 'line' && it.parsed.y > 0,
+          callbacks: { label: ctx => `  ${ctx.dataset.label}: ${gbp(ctx.parsed.y)}` }
+        }
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { maxTicksLimit: 7, font: { size: 10 }, color: '#475569' } },
+        y: { stacked: true, beginAtZero: true, grid: { color: '#eef2f6' }, ticks: { callback: v => v >= 1000 ? '£' + (v/1000).toFixed(1) + 'k' : '£' + v, font: { size: 10 }, color: '#475569' } }
       }
     }
   });
@@ -762,33 +787,48 @@ function buildAccountChartData(accId) {
 function buildForecastChartData() {
   const accounts = DB.accounts();
   if (!accounts.length) return null;
-  const entries = accounts.map(a => ({
-    id: a.id, type: a.type, name: a.name, balance: DB.balance(a.id),
-    rate: a.rate, monthlyDeposit: a.monthlyDeposit, txs: DB.txFor(a.id),
-  }));
-  const totalProj = window.Finance.projectTotal(
-    entries.map(e => ({ balance: e.balance, rate: e.rate, monthlyDeposit: e.monthlyDeposit, txs: e.txs })), 12
-  );
-  if (!totalProj.length) return null;
-  const labels = ['Now', ...totalProj.map(p => p.lbl)];
-  const totalNow = entries.reduce((s, e) => s + e.balance, 0);
-  const datasets = [{
-    label: 'Total',
-    data: [totalNow, ...totalProj.map(p => p.bal)],
-    borderColor: '#2563eb', backgroundColor: '#2563eb1a',
-    borderWidth: 3, fill: false, tension: 0.4, pointRadius: 2, order: 0,
-  }];
+  const N = 12;
+  let monthLabels = null;
+  const entries = accounts.map(a => {
+    const bal = DB.balance(a.id);
+    const proj = window.Finance.projectAccount({ balance: bal, rate: a.rate, monthlyDeposit: a.monthlyDeposit }, DB.txFor(a.id), N);
+    if (!monthLabels) monthLabels = proj.map(p => p.lbl);
+    return { id: a.id, type: a.type, name: a.name, series: [bal, ...proj.map(p => p.bal)] };
+  });
+  if (!monthLabels) return null;
+  const labels = ['Now', ...monthLabels];
+
+  const focus = S.fcFocus;
+  const anyFocus = focus.size > 0;
+  const datasets = [];
+
+  // Stacked composition bars — one segment per account, they sum to the monthly total.
   for (const e of entries) {
-    if (!S.fcLines.has(e.id)) continue;
-    const aProj = window.Finance.projectAccount({ balance: e.balance, rate: e.rate, monthlyDeposit: e.monthlyDeposit }, e.txs, 12);
-    const c = typeColor(e.type).ink;
+    const col = typeColor(e.type);
+    const bright = !anyFocus || focus.has(e.id);
     datasets.push({
-      label: e.name,
-      data: [e.balance, ...aProj.map(p => p.bal)],
-      borderColor: c, backgroundColor: 'transparent',
-      borderWidth: 2, fill: false, tension: 0.4, pointRadius: 2, order: 1,
+      type: 'bar', label: e.name, data: e.series, stack: 'composition',
+      backgroundColor: col.ink + (bright ? 'cc' : '14'), borderWidth: 0, order: 2,
     });
   }
+
+  // Per-account cumulative "layer" lines. Each line's data is the running total up to and
+  // including that account, so it sits on the top edge of that account's stacked segment
+  // (topmost line = grand total). A unique `stack` per line keeps Chart.js from re-stacking
+  // them, so each renders at its literal (already-cumulative) value on the stacked y-axis.
+  let cum = new Array(labels.length).fill(0);
+  entries.forEach((e, i) => {
+    cum = cum.map((v, j) => v + e.series[j]);
+    const col = typeColor(e.type);
+    const bright = focus.has(e.id);
+    datasets.push({
+      type: 'line', label: e.name + ' — running total', data: [...cum], stack: 'line' + i,
+      borderColor: col.ink + (anyFocus ? (bright ? 'ff' : '1f') : 'aa'),
+      borderWidth: anyFocus && bright ? 3 : 1.5,
+      pointRadius: 0, fill: false, tension: 0.35, order: 1,
+    });
+  });
+
   return { labels, datasets };
 }
 
@@ -989,9 +1029,10 @@ function renderForecast() {
     const aAvg = aProj[0]?.chg ?? 0;
     const aProj12 = aProj[11]?.bal ?? aBal;
     const t = ty(a.type);
-    const on = S.fcLines.has(a.id);
+    const on = S.fcFocus.has(a.id);
+    const dim = S.fcFocus.size > 0 && !on;
     return `
-      <div class="card fc-line-card ${t.cls} ${on ? 'fc-on' : ''}" style="margin-bottom:10px;background:var(--type-bg)" role="button" tabindex="0" aria-pressed="${on}" onclick="App.toggleFcLine('${a.id}')">
+      <div class="card fc-line-card ${t.cls} ${on ? 'fc-on' : ''} ${dim ? 'fc-dim' : ''}" style="margin-bottom:10px;background:var(--type-bg)" role="button" tabindex="0" aria-pressed="${on}" onclick="App.toggleFcLine('${a.id}')">
         <div class="cb" style="display:flex;align-items:center;gap:10px">
           <div class="ac-icon ${t.cls}" style="font-size:16px">${initial(a.name)}</div>
           <div style="flex:1;min-width:0">
@@ -1040,7 +1081,7 @@ function renderForecast() {
         ${hasForecast ? `<div style="padding:0 16px 14px"><div class="chart-wrap"><canvas id="tot-chart" role="img" aria-label="Projected balances — total and selected accounts"></canvas></div></div>` : ''}
       </div>
 
-      ${accounts.length ? '<div class="sec-title" role="heading" aria-level="2">Per Account (12 months)</div>' + perAcc : ''}
+      ${accounts.length ? '<div class="sec-title" role="heading" aria-level="2">Per Account (12 months)</div><div style="font-size:12px;color:var(--text-2);margin:-4px 0 10px">Tap a fund to spotlight it on the chart above.</div>' + perAcc : ''}
 
       <div class="sec-title" role="heading" aria-level="2">Month by Month</div>
       <div class="card">
@@ -1145,7 +1186,7 @@ function escHtml(s) {
 const App = {
   go(view, params = {}) {
     const changed = view !== S.view || (params.id && params.id !== S.accId);
-    if (changed) { S.txExpanded = false; S.fcExpanded = false; S.fcMonthly = false; S.fcLines = new Set(); }
+    if (changed) { S.txExpanded = false; S.fcExpanded = false; S.fcMonthly = false; S.fcFocus = new Set(); }
     destroyCharts();
     S.view = view;
     if (params.id) S.accId = params.id;
@@ -1173,7 +1214,7 @@ const App = {
     }
     if (view === 'forecast') {
       const cd = buildForecastChartData();
-      if (cd) lineChart('tot-chart', cd.labels, cd.datasets);
+      if (cd) mixedChart('tot-chart', cd.labels, cd.datasets);
     }
   },
 
@@ -1228,7 +1269,7 @@ const App = {
   toggleForecast() { S.fcExpanded = !S.fcExpanded; this.go('account', { id: S.accId }); },
   toggleFcMonthly() { S.fcMonthly = !S.fcMonthly; this.go('forecast'); },
   toggleFcLine(id) {
-    if (S.fcLines.has(id)) S.fcLines.delete(id); else S.fcLines.add(id);
+    if (S.fcFocus.has(id)) S.fcFocus.delete(id); else S.fcFocus.add(id);
     this.go('forecast');
   },
 
